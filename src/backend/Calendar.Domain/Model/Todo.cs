@@ -28,9 +28,11 @@ public sealed class Todo : Entry
         Priority? priority,
         Alarm? alarm,
         RecurrenceRule? recurrenceRule,
+        RecurrenceDateTimes? recurrenceDates,
+        ExceptionDateTimes? exceptionDates,
         string? location,
         GeographicPosition? geographicPosition)
-        : base(userId, calendarId, summary, description, alarm, recurrenceRule, location, geographicPosition)
+        : base(userId, calendarId, summary, description, alarm, recurrenceRule, recurrenceDates, exceptionDates, location, geographicPosition)
     {
         Start = start;
         Due = due;

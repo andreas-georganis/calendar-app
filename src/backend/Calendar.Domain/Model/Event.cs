@@ -23,10 +23,12 @@ public class Event : Entry
         DateTimeOrDuration? end, 
         Alarm? alarm,
         RecurrenceRule? recurrenceRule, 
+        RecurrenceDateTimes? recurrenceDates,
+        ExceptionDateTimes? exceptionDates,
         string? location, 
         GeographicPosition? geographicPosition,
         IEnumerable<Attendee>? attendees)
-        : base(userId, calendarId, summary, description, alarm, recurrenceRule, location, geographicPosition)
+        : base(userId, calendarId, summary, description, alarm, recurrenceRule, recurrenceDates, exceptionDates, location, geographicPosition)
     {
         // if (start > end)
         //     throw new ArgumentException("Start date must be before end date");

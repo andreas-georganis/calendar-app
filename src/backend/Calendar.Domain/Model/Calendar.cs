@@ -61,10 +61,12 @@ public sealed class Calendar
         Priority? priority,
         Alarm? alarm,
         RecurrenceRule? recurrenceRule,
+        RecurrenceDateTimes? recurrenceDates,
+        ExceptionDateTimes? exceptionDates,
         string? location,
         GeographicPosition geographicPosition)
     {
-        var todo = new Todo(this.UserId, this.Id, title, description, start, due, priority, alarm, recurrenceRule,  location, geographicPosition);
+        var todo = new Todo(this.UserId, this.Id, title, description, start, due, priority, alarm, recurrenceRule, recurrenceDates, exceptionDates, location, geographicPosition);
         
         AddTodo(todo);
 
@@ -79,10 +81,12 @@ public sealed class Calendar
         IEnumerable<Attendee>? attendees,
         Alarm? alarm,
         RecurrenceRule? recurrence,
+        RecurrenceDateTimes? recurrenceDates,
+        ExceptionDateTimes? exceptionDates,     
         string? location,
         GeographicPosition geographicPosition)
     {
-        var @event = new Event(this.UserId, this.Id, title, description, start, end,  alarm, recurrence, location, geographicPosition, attendees );
+        var @event = new Event(this.UserId, this.Id, title, description, start, end,  alarm, recurrence, recurrenceDates, exceptionDates, location, geographicPosition, attendees );
         
         AddEvent(@event);
         

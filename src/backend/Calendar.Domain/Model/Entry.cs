@@ -14,6 +14,8 @@ public abstract class Entry
         string? description, 
         Alarm? alarm,
         RecurrenceRule? recurrenceRule,
+        RecurrenceDateTimes? recurrenceDates,
+        ExceptionDateTimes? exceptionDates,
         string? location,
         GeographicPosition? geographicPosition)
     {
