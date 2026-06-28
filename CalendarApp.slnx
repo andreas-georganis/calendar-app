@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/aspire/" />
+  <Folder Name="/src/backend/">
+    <Project Path="src/backend/Calendar.API/Calendar.API.csproj" />
+    <Project Path="src/backend/Calendar.Domain/Calendar.Domain.csproj" />
+    <Project Path="src/backend/Calendar.Infrastructure/Calendar.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/frontend/">
+    <Project Path="src/frontend/Calendar.Web/Calendar.Web.Client/Calendar.Web.Client.csproj" />
+    <Project Path="src/frontend/Calendar.Web/Calendar.Web/Calendar.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Project Path="TestAPI/TestAPI.csproj" />
+</Solution>
