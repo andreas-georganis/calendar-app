@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+<!--        <TargetFramework>net11.0</TargetFramework>-->
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
@@ -15,13 +15,14 @@
       <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
       <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Yarp" />
-<!--      <PackageReference Include="MudBlazor" />-->
+      <PackageReference Include="MudBlazor" />
 <!--      <PackageReference Include="Extensions.MudBlazor.StaticInput" />-->
       <PackageReference Include="Yarp.ReverseProxy" />
       <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server"/>
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\aspire\CalendarApp.ServiceDefaults\CalendarApp.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Calendar.Web.Client\Calendar.Web.Client.csproj"/>
     </ItemGroup>
 

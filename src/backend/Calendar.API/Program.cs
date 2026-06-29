@@ -1,12 +1,13 @@
 using System.Text.Json.Serialization;
 using Calendar.API;
-using Calendar.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using DateTime = System.DateTime;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 
 builder.Services.AddValidation();
 builder.Services.AddProblemDetails();
@@ -33,6 +34,8 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

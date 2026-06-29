@@ -2,9 +2,10 @@
 
 namespace Calendar.Domain.Model;
 
-public sealed class Session
+public sealed class Session : User
 {
     [JsonPropertyName("accessToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenReading)]
     public string? Token { get; init; }
     
     public string? Provider { get; init; } 

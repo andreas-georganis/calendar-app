@@ -4,8 +4,12 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/" />
-  <Folder Name="/src/aspire/" />
+  <Folder Name="/src/aspire/">
+    <Project Path="src/aspire/CalendarApp.AppHost/CalendarApp.AppHost.csproj" />
+    <Project Path="src/aspire/CalendarApp.ServiceDefaults/CalendarApp.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/src/backend/">
+    <Project Path="src/backend/Calendar.API.Migrator/Calendar.API.Migrator.csproj" />
     <Project Path="src/backend/Calendar.API/Calendar.API.csproj" />
     <Project Path="src/backend/Calendar.Domain/Calendar.Domain.csproj" />
     <Project Path="src/backend/Calendar.Infrastructure/Calendar.Infrastructure.csproj" />
