@@ -1,9 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-public readonly record struct ByYearDay : IParsable<ByYearDay>
+[JsonConverter(typeof(ParsableJsonConverter<ByYearDay>))]
+public sealed record ByYearDay : IParsable<ByYearDay>
 {
     public IEnumerable<YearDay> Value { get; }
     
@@ -20,7 +22,7 @@ public readonly record struct ByYearDay : IParsable<ByYearDay>
         var segments = s?.Split(',', StringSplitOptions.RemoveEmptyEntries 
                                      | StringSplitOptions.TrimEntries);
         
-        if (segments is null or {Length:0})
+        if (segments is null or { Length:0 })
         {
             result = default;
             return false;

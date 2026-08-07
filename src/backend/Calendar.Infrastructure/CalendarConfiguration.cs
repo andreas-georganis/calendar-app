@@ -14,6 +14,11 @@ public class CalendarConfiguration : IEntityTypeConfiguration<Domain.Model.Calen
         builder.Property(c => c.Id)
             .HasDefaultValueSql("NEWSEQUENTIALID()")
             .ValueGeneratedOnAdd();
+
+        builder.Property(c => c.UserId)
+            .HasConversion(
+                userId => userId.Value,
+                userIdValue => new UserId(userIdValue));
         
         builder.Property(c => c.Name)
             .IsRequired()
@@ -26,11 +31,6 @@ public class CalendarConfiguration : IEntityTypeConfiguration<Domain.Model.Calen
         builder.HasMany(c => c.Events)
             .WithOne()
             .HasForeignKey(e => e.CalendarId);
-        
-        builder.HasOne<User>()
-            .WithMany()
-            .HasForeignKey(c => c.UserId)
-            .HasPrincipalKey(c => c.Id);
         
         builder.Property(ce=>ce.TimeZone)
             .HasConversion(

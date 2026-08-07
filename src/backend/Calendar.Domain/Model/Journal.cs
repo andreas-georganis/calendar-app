@@ -1,13 +1,7 @@
 ﻿namespace Calendar.Domain.Model;
 
-public enum JournalStatus
-{
-    Draft,
-    Final,
-    Cancelled
-}
 
-public class Journal: Entry
+public sealed class Journal
 {
     public DateTime? Start { get; init; }
     

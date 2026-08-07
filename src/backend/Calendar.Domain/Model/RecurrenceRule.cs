@@ -3,16 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-public enum Frequency
-{
-    Secondly,
-    Minutely,
-    Hourly,
-    Daily,
-    Weekly,
-    Monthly,
-    Yearly
-}
 
 
 public class RecurrenceRule
@@ -21,9 +11,10 @@ public class RecurrenceRule
 
     [JsonConstructor]
     public RecurrenceRule(
-        Frequency frequency, 
+        Frequency frequency,
         Interval? interval = null, 
-        UntilOrCount? untilOrCount = null,
+        DateTime? until = null,
+        Count? count = null,
         BySecond? bySecond = null,
         ByMinute? byMinute = null,
         ByHour? byHour = null,
@@ -34,6 +25,11 @@ public class RecurrenceRule
         ByYearDay? byYearDay = null,
         BySetPos? bySetPos = null)
     {
+        if (until != null && count != null)
+        {
+            throw new InvalidOperationException("UNTIL and COUNT cannot be set at the same time");
+        }
+
         if (frequency == Frequency.Weekly && byMonthDay != null)
         {
             throw new InvalidOperationException("BYMONTHDAY not allowed with WEEKLY");
@@ -65,8 +61,9 @@ public class RecurrenceRule
         }
         
         Frequency = frequency;
-        Interval = interval;
-        UntilOrCount = untilOrCount;
+        Interval = interval ?? Domain.Model.Interval.One();
+        Until = until;
+        Count = count;
         BySecond = bySecond;
         ByMinute = byMinute;
         ByHour = byHour;
@@ -86,16 +83,11 @@ public class RecurrenceRule
 
     public Frequency Frequency { get; }
 
-    public Interval? Interval
-    {
-        get;
-        init
-        {
-            field = value ?? Domain.Model.Interval.One();
-        }
-    } 
+    public Interval? Interval { get; } 
     
-    public UntilOrCount? UntilOrCount { get; set; }
+    public DateTime? Until { get; }
+
+    public Count? Count { get; }
     
     public BySecond? BySecond { get;  }
     public ByMinute? ByMinute { get; }
@@ -106,8 +98,6 @@ public class RecurrenceRule
     public ByMonth? ByMonth { get; }
     public ByYearDay? ByYearDay { get;  }
     public BySetPos? BySetPos { get; }
-    
-    
     
     public DayOfWeek WeekStart { get; } = DayOfWeek.Monday;
 }

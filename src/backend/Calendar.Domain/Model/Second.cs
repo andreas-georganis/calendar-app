@@ -17,7 +17,7 @@ public readonly record struct Second: IParsable<Second>
     }
 
     public static Second Parse(string s, IFormatProvider? provider)
-        => new Second(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Second result)
     {

@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using NodaTime;
 using NodaTime.Text;
 
 namespace Calendar.Domain.Model;
 
+[JsonConverter(typeof(ParsableJsonConverter<DateTime>))]
 public readonly partial record struct DateTime
     : IParsable<DateTime>, IComparable<DateTime>
 {
@@ -13,13 +15,13 @@ public readonly partial record struct DateTime
     [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}$", Options, 2000)]
     static partial Regex LocalDateRegex { get; }
 
-    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", Options, 2000)]
     static partial Regex LocalDateTimeRegex { get; }
 
-    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", Options, 2000)]
     static partial Regex InstantRegex { get; }
 
-    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\s+[A-Za-z_]+(?:/[A-Za-z_]+)+$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\s+[A-Za-z_]+(?:/[A-Za-z_]+)+$", Options, 2000)]
     static partial Regex ZonedDateTimeRegex { get; }
 
     private readonly Instant? _utc;
@@ -84,8 +86,6 @@ public readonly partial record struct DateTime
             result = default;
             return false;
         }
-
-        s = s.Trim();
 
         if (LocalDateRegex.IsMatch(s)
             && LocalDatePattern.Iso.Parse(s).TryGetValue(default, out var date))

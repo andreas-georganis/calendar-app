@@ -7,18 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="LanguageExt.Core" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
+      <PackageReference Include="Asp.Versioning.Http" />
+      <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+      <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="MiniValidation" />
+      <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
+      <PackageReference Include="Scalar.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\aspire\CalendarApp.ServiceDefaults\CalendarApp.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\..\aspire\Calendar.ServiceDefaults\Calendar.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Calendar.Infrastructure\Calendar.Infrastructure.csproj" />
     </ItemGroup>
 

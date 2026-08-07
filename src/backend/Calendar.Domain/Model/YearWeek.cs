@@ -17,7 +17,7 @@ public readonly record struct YearWeek : IParsable<YearWeek>
     public static implicit operator int(YearWeek yearWeek) => yearWeek.Value;
 
     public static YearWeek Parse(string s, IFormatProvider? provider)
-        => new YearWeek(int.Parse(s,  provider));
+        => new(int.Parse(s,  provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out YearWeek result)
     {

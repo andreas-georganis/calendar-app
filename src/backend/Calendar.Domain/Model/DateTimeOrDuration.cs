@@ -1,8 +1,11 @@
 ﻿
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
+
 
 namespace Calendar.Domain.Model;
 
+[JsonConverter(typeof(ParsableJsonConverter<DateTimeOrDuration>))]
 public readonly record struct DateTimeOrDuration: IParsable<DateTimeOrDuration>
 {
     private readonly DateTime? _dateTime;
@@ -11,16 +14,20 @@ public readonly record struct DateTimeOrDuration: IParsable<DateTimeOrDuration>
     public DateTimeOrDuration(DateTime dateTime)
     {
         _dateTime = dateTime;
+        _duration = null;
     }
     
     public DateTimeOrDuration(Duration duration)
     {
         _duration = duration;
+        _dateTime = null;
     }
     
     public DateTime? DateTime => _dateTime;
 
     public Duration? Duration => _duration;
+
+    public bool IsDateTime => _dateTime.HasValue;
     
     public bool TryGetValue([NotNullWhen(true)]out DateTime? dateTime)
     {
@@ -57,5 +64,10 @@ public readonly record struct DateTimeOrDuration: IParsable<DateTimeOrDuration>
         
         result = default;
         return false;
+    }
+
+    public override string? ToString()
+    {
+        return IsDateTime ? _dateTime!.ToString() : _duration!.ToString();
     }
 }

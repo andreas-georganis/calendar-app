@@ -1,9 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-public readonly record struct ByWeekNo: IParsable<ByWeekNo>
+[JsonConverter(typeof(ParsableJsonConverter<ByWeekNo>))]
+public sealed record ByWeekNo: IParsable<ByWeekNo>
 {
     public IEnumerable<YearWeek> Value { get; }
 

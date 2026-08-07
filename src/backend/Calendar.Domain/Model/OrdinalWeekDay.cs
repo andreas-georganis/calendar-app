@@ -1,6 +1,7 @@
 ﻿
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Calendar.Domain.Model;
 using NodaTime;
 
 namespace Calendar.Domain.Model;

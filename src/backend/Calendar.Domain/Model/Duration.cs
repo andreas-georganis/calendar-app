@@ -2,13 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using NodaTime;
-using NodaTime.Text;
+using System.Text .Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
 /// <summary>
 /// ISO-8601-2 duration
 /// </summary>
+[JsonConverter(typeof(ParsableJsonConverter<Duration>))]
 public readonly partial record struct Duration : IParsable<Duration>
 {
     [GeneratedRegex(@"^(?<sign>[+-])?P(?:(?<weeks>[0-9]+)W|(?:(?<days>[0-9]+)D(?:T(?:(?<hours>[0-9]+)H(?:(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?)?|(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?|(?<seconds>[0-9]+)S))?)|T(?:(?<hours>[0-9]+)H(?:(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?)?|(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?|(?<seconds>[0-9]+)S))$",
@@ -16,6 +17,9 @@ public readonly partial record struct Duration : IParsable<Duration>
     private static partial Regex Rfc5545DurationRegex { get; }
 
     public static Duration Zero => Duration.Parse("P0D", null);
+
+    public static bool IsValid(string value) 
+        => Rfc5545DurationRegex.IsMatch(value);
 
     public Duration(NodaTime.Period period)
         : this(period.Weeks, period.Days, (int)period.Hours, (int)period.Minutes, (int)period.Seconds)
@@ -156,7 +160,7 @@ public readonly partial record struct Duration : IParsable<Duration>
     }
     
     public static Duration operator -(Duration duration)
-       => new Duration(-duration.Weeks, -duration.Days, -duration.Hours, -duration.Minutes, -duration.Seconds);
+       => new(-duration.Weeks, -duration.Days, -duration.Hours, -duration.Minutes, -duration.Seconds);
 
     private static bool SameSign(params int?[] values)
     {

@@ -2,7 +2,7 @@
 
 namespace Calendar.API.Endpoints;
 
-public static class TimeZoneApi
+internal static class TimeZoneApi
 {
     internal static RouteGroupBuilder MapTimeZoneEndpoints(this RouteGroupBuilder app)
     {

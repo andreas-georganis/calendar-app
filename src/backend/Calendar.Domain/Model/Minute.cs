@@ -17,11 +17,13 @@ public readonly record struct Minute: IParsable<Minute>
     }
 
     public static Minute Parse(string s, IFormatProvider? provider)
-        => new Minute(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Minute result)
     {
-        if (!int.TryParse(s, out int value) )
+        
+
+        if (!int.TryParse(s, out int value))
         {
             result = default;
             return false;

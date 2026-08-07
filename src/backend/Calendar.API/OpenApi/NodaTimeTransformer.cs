@@ -32,8 +32,8 @@ public class NodaTimeTransformer : IOpenApiSchemaTransformer
         if (context.JsonTypeInfo.Type == typeof(DateTimeZone))
         {
             schema.Type = JsonSchemaType.String;
-            schema.Format = "timezone-id";
-            schema.Description = "The ID - IANA time zone identifier, e.g. 'America/New_York'- , as a string.";
+            schema.Format = "string";
+            schema.Description = "IANA time zone identifier serialized as a string, for example 'America/New_York'.";
         }
         
         if (context.JsonTypeInfo.Type == typeof(Duration))

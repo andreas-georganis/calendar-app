@@ -1,9 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-public readonly record struct ByMonth : IParsable<ByMonth>
+[JsonConverter(typeof(ParsableJsonConverter<ByMonth>))]
+public sealed record ByMonth : IParsable<ByMonth>
 {
     public IEnumerable<Month> Value { get; }
 

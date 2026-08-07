@@ -1,20 +1,14 @@
-﻿using System.Text.Json.Serialization;
+﻿
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-[JsonPolymorphic]
-[JsonDerivedType(typeof(UriAttachment))]
-[JsonDerivedType(typeof(BinaryAttachment))]
-public abstract record Attachment
+public sealed class Attachment
 {
-    public MediaType? MediaType { get; }
-    
-    protected Attachment(MediaType? mediaType = null)
-    {
-        MediaType = mediaType;
-    }
+    public required Uri Uri { get; init; }
 
-    public record UriAttachment(Uri Value): Attachment;
-    
-    public record BinaryAttachment(byte[] Value) : Attachment;
+    public MediaType? MediaType { get; init; } 
+
 }

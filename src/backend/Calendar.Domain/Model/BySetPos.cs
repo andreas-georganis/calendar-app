@@ -1,9 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-public readonly record struct BySetPos: IParsable<BySetPos>
+[JsonConverter(typeof(ParsableJsonConverter<BySetPos>))]
+public sealed record BySetPos: IParsable<BySetPos>
 {
     public IEnumerable<SetPos> Value { get; }
 

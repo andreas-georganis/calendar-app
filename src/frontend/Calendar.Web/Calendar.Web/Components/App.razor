@@ -2,22 +2,20 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <base href="/"/>
-    <ResourcePreloader/>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]"/>
-    <link rel="stylesheet" href="@Assets["Calendar.Web.styles.css"]"/>
-    <ImportMap/>
-    <HeadOutlet @rendermode="InteractiveAuto"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <BasePath />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["Calendar.Web.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet @rendermode="InteractiveAuto" />
 </head>
 
 <body>
-<Routes @rendermode="InteractiveAuto"/>
-<ReconnectModal/>
-<script src="@Assets["_framework/blazor.web.js"]"></script>
-<script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+    <Routes @rendermode="InteractiveAuto" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 
 </html>

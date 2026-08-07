@@ -14,7 +14,7 @@ public readonly record struct YearDay : IParsable<YearDay>
 
     public int Value { get; }
     public static YearDay Parse(string s, IFormatProvider? provider)
-        => new YearDay(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out YearDay result)
     {

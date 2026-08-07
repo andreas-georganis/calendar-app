@@ -5,19 +5,19 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/aspire/">
-    <Project Path="src/aspire/CalendarApp.AppHost/CalendarApp.AppHost.csproj" />
-    <Project Path="src/aspire/CalendarApp.ServiceDefaults/CalendarApp.ServiceDefaults.csproj" />
+    <Project Path="src/aspire/Calendar.AppHost/Calendar.AppHost.csproj" />
+    <Project Path="src/aspire/Calendar.ServiceDefaults/Calendar.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/src/backend/">
-    <Project Path="src/backend/Calendar.API.Migrator/Calendar.API.Migrator.csproj" />
     <Project Path="src/backend/Calendar.API/Calendar.API.csproj" />
     <Project Path="src/backend/Calendar.Domain/Calendar.Domain.csproj" />
     <Project Path="src/backend/Calendar.Infrastructure/Calendar.Infrastructure.csproj" />
+    <Project Path="src/backend/Calendar.Migrator/Calendar.Migrator.csproj" />
   </Folder>
-  <Folder Name="/src/frontend/">
+  <Folder Name="/src/frontend/" />
+  <Folder Name="/src/frontend/Calendar.Web/">
     <Project Path="src/frontend/Calendar.Web/Calendar.Web.Client/Calendar.Web.Client.csproj" />
     <Project Path="src/frontend/Calendar.Web/Calendar.Web/Calendar.Web.csproj" />
   </Folder>
   <Folder Name="/tests/" />
-  <Project Path="TestAPI/TestAPI.csproj" />
 </Solution>

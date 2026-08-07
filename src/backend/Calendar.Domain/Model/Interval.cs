@@ -15,7 +15,7 @@ public readonly record struct Interval : IParsable<Interval>
     }
 
     public static Interval Parse(string s, IFormatProvider? provider)
-        => new Interval(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Interval result)
     {

@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
+[JsonConverter(typeof(ParsableJsonConverter<Count>))]
 public readonly record struct Count : IParsable<Count>
 {
     public int Value { get; }
@@ -13,7 +15,7 @@ public readonly record struct Count : IParsable<Count>
     }
 
     public static Count Parse(string s, IFormatProvider? provider)
-        => new Count(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Count result)
     {

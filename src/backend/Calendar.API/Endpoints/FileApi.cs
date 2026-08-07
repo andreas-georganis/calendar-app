@@ -1,4 +1,6 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.Text.Encodings.Web;
+using Calendar.Domain.Model;
 using Calendar.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NodaTime;
@@ -6,144 +8,50 @@ using NodaTime;
 namespace Calendar.API.Endpoints;
 
 // todo: previews, thumbnails, etc.
-internal static class FileApii
+internal static class FileApi
 {
     const string StorageRoot = @"/storage/uploads/";
 
-    internal static RouteGroupBuilder MapFileUploadApi(this IEndpointRouteBuilder endpoints)
+    internal static RouteGroupBuilder MapFileApi(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/file-uploads").RequireAuthorization();
+        var group = endpoints.MapGroup("/files").RequireAuthorization();
         
-        group.MapPost("/", async Task<Created<Domain.Model.FileUpload>> (
-            IFormFile file, 
-            CurrentUser currentUser, 
-            CalendarDbContext dbContext,
+        group.MapPost("/", async Task<Created<Domain.Model.File>> (
+            IFormFile fileData, 
+            UserId userId, 
+            CalendarDbContext db,
             IClock clock, 
             CancellationToken cancellationToken) =>
             {
-                var path = await SaveToDisk(file, cancellationToken);
+                var saveResult = await SaveToDisk(fileData, cancellationToken);
 
-                if (path is not null)
-                {
-                    savedFiles.Add(
-                        (file.FileName, 
-                            path, 
-                            file.ContentType, 
-                            file.ContentDisposition,
-                            file.Length));
-                }
+                var originalName = Path.GetFileName(fileData.FileName);
 
-                var fileUpload = new Domain.Model.FileUpload
+                var file = new Domain.Model.File
                 {
-                    UserId = currentUser.Id,
+                    UserId = userId,
                     Created = clock.GetCurrentInstant(),
-                    Files = savedFiles.Select(f => new Domain.Model.File
-                    {
-                        OriginalName = f.OriginalName,
-                        ContentType = f.ContentType,
-                        ContentDisposition = f.ContentDisposition,
-                        Size = f.Size,
-                        StorageProvider = "Physical",
-                        ObjectKey = f.Path
-                    }).ToList()
+                    OriginalName = originalName,
+                    ContentType = fileData.ContentType,
+                    ContentDisposition = fileData.ContentDisposition,
+                    Size = fileData.Length,
+                    SaveResult = saveResult
                 };
 
-                dbContext.FileUploads.Add(fileUpload);
+                db.Files.Add(file);
                 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                await db.SaveChangesAsync(cancellationToken);
 
-                return TypedResults.Created($"/file-uploads/{fileUpload.Id}", fileUpload);
-                
-                
+                return TypedResults.Created($"/files/{file.Id}", file);
             });
 
-        // group.MapPost("", async Task<Created<Domain.Model.FileUpload>> (
-        //     IFormFileCollection files, 
-        //     CurrentUser currentUser, 
-        //     CalendarDbContext dbContext,
-        //     IClock clock, 
-        //     CancellationToken cancellationToken) =>
-        //     {
-        //         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        //
-        //         var savedFiles = new ConcurrentBag<(
-        //             string OriginalName,
-        //             string Path,
-        //             string ContentType,
-        //             string ContentDisposition,
-        //             long Size)>();
-        //         
-        //         var options = new ParallelOptions
-        //         {
-        //             CancellationToken = cts.Token,
-        //             MaxDegreeOfParallelism = Environment.ProcessorCount
-        //         };
-        //
-        //         try
-        //         {
-        //             await Parallel.ForEachAsync(files, options, async (file, ct) =>
-        //             {
-        //                 var path = await SaveToDisk(file, ct);
-        //
-        //                 if (path is not null)
-        //                 {
-        //                     savedFiles.Add(
-        //                         (file.FileName, 
-        //                             path, 
-        //                             file.ContentType, 
-        //                             file.ContentDisposition,
-        //                             file.Length));
-        //                 }
-        //             });
-        //         }
-        //         catch
-        //         {
-        //             await cts.CancelAsync();
-        //
-        //             foreach (var file in savedFiles)
-        //             {
-        //                 try
-        //                 {
-        //                     File.Delete(file.Path);
-        //                 }
-        //                 catch
-        //                 {
-        //                     // log
-        //                 }
-        //             }
-        //
-        //             throw;
-        //         }
-        //
-        //         var fileUpload = new Domain.Model.FileUpload
-        //         {
-        //             UserId = currentUser.Id,
-        //             Created = clock.GetCurrentInstant(),
-        //             Files = savedFiles.Select(f => new Domain.Model.File
-        //             {
-        //                 OriginalName = f.OriginalName,
-        //                 ContentType = f.ContentType,
-        //                 ContentDisposition = f.ContentDisposition,
-        //                 Size = f.Size,
-        //                 StorageProvider = "Physical",
-        //                 ObjectKey = f.Path
-        //             }).ToList()
-        //         };
-        //
-        //         dbContext.FileUploads.Add(fileUpload);
-        //         
-        //         await dbContext.SaveChangesAsync(cancellationToken);
-        //
-        //         return TypedResults.Created($"/file-uploads/{fileUpload.Id}", fileUpload);
-        //         
-        //         
-        //     });
+       
         
-        static async Task<string?> SaveToDisk(IFormFile file, CancellationToken cancellationToken)
+        static async Task<SaveResult> SaveToDisk(IFormFile file, CancellationToken cancellationToken)
         {
             if (file is { Length: 0 })
             {
-                return null;
+                return new(false,null);
             }
                     
             Directory.CreateDirectory(StorageRoot);
@@ -154,7 +62,7 @@ internal static class FileApii
 
             await file.CopyToAsync(stream, cancellationToken);
 
-            return filePath;
+            return new(true, new Uri(filePath));    
         }
 
         return group;

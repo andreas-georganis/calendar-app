@@ -1,4 +1,5 @@
-
+﻿
+using Calendar.Domain.Model;
 using Calendar.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -14,76 +15,99 @@ internal static class CalendarApi
             .WithTags("Calendars")
             .RequireAuthorization();
 
-        group.MapGet("/", async Task<Ok<IEnumerable<Domain.Model.Calendar>>> (CalendarDbContext db, CurrentUser user) => 
-            { 
-                var calendars = await db.Calendars.AsNoTracking()
-                    .Where(c => c.UserId == user.Id).ToListAsync();
-
-                return TypedResults.Ok<IEnumerable<Domain.Model.Calendar>>(calendars);
-            })
-            .WithDescription("Retrieves the user's calendars");
-
-        group.MapGet("/{id:guid}", async Task<Results<Ok<Domain.Model.Calendar>, NotFound>> (Guid id, CalendarDbContext db, CurrentUser user) => 
-            { 
-                db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-                
-                var calendar = await db.Calendars.FindAsync(id);
-                    
-                return calendar is not null ? TypedResults.Ok(calendar) : TypedResults.NotFound();
-            })
-            .WithDescription("Returns a calendar by its id");
-        
-        group.MapPost("/", async Task<Created<Domain.Model.Calendar>> (Domain.Model.Calendar calendar, CalendarDbContext db, CurrentUser user) => 
+        group.MapGet("/", async Task<Ok<IEnumerable<Contracts.Calendar>>> (CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
+        { 
+            var calendars = await db.Calendars
+            .Where(c => c.UserId == userId)
+            .Select(c => new Contracts.Calendar
             {
-                // if (!MiniValidator.TryValidate(calendar, out var errors))
-                // {
-                //     return TypedResults.ValidationProblem(errors);
-                // }
-                
-                
-                db.Calendars.Add(calendar);
-                await db.SaveChangesAsync();
+                Id = c.Id,
+                Name = c.Name,
+                TimeZone = c.TimeZone
+            }).ToListAsync(cancellationToken);
 
-                return TypedResults.Created($"/calendars/{calendar.Id}", calendar);
-            })
-            .WithDescription("Creates a new calendar");
-        
-        group.MapPut("/{id:guid}", async Task<Results<NoContent, NotFound>> (Guid id, Domain.Model.Calendar calendarData, CalendarDbContext db) => 
+            return TypedResults.Ok<IEnumerable<Contracts.Calendar>>(calendars);
+        })
+        .WithDescription("Retrieves the user's calendars");
+
+        group.MapGet("/{id:guid}", async Task<Results<Ok<Contracts.Calendar>, NotFound>> (CalendarId id, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) => 
+        { 
+            db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            
+            var calendar = await db.Calendars.FindAsync([id], cancellationToken);
+            if (calendar?.UserId != userId)
             {
-                // if (!MiniValidator.TryValidate(calendar, out var errors))
-                // {
-                //     return TypedResults.ValidationProblem(errors);
-                // }
+                return TypedResults.NotFound();
+            }
                 
-                var calendar = await db.Calendars.FindAsync(id);
-                if (calendar is null)
-                {
-                    return TypedResults.NotFound();
-                }
-
-                calendar.Edit(calendarData.Name, calendarData.TimeZone.Id);
-                
-                await db.SaveChangesAsync();
-
-                return TypedResults.NoContent(); 
-            })
-            .WithDescription("Edits an existing calendar");
-        
-        group.MapDelete("/{id:guid}", async Task<Results<NoContent, NotFound>> (Guid id, CalendarDbContext db) => 
+            return calendar is not null ? TypedResults.Ok<Contracts.Calendar>(new Contracts.Calendar
             {
-                var existing = await db.Calendars.FindAsync(id);
-                if (existing is null)
-                {
-                    return TypedResults.NotFound();
-                }
+                Id = calendar.Id,
+                Name = calendar.Name,
+                TimeZone = calendar.TimeZone
+            }) : TypedResults.NotFound();
+        })
+        .WithDescription("Returns a calendar by its id");
+        
+        group.MapPost("/", async Task<Created<Contracts.Calendar>> (Contracts.Calendar calendarData, UserId userId, CalendarDbContext db, CancellationToken cancellationToken) => 
+        {
+            var calendar = new Domain.Model.Calendar(userId, calendarData.Id, calendarData.Name, calendarData.TimeZone);
 
-                db.Calendars.Remove(existing);
-                await db.SaveChangesAsync();
+            db.Calendars.Add(calendar);
+            await db.SaveChangesAsync(cancellationToken);
+            return TypedResults.Created($"/calendars/{calendar.Id}", new Contracts.Calendar
+            {
+                Id = calendar.Id,
+                Name = calendar.Name,
+                TimeZone = calendar.TimeZone
+            });
+        })
+        .WithDescription("Creates a new calendar");
+        
+        group.MapPut("/{id:guid}", async Task<Results<NoContent, NotFound>> (CalendarId id, Contracts.Calendar calendarData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) => 
+        {
+            var calendar = await db.Calendars.FindAsync([id], cancellationToken);
+            if (calendar is null)
+            {
+                return TypedResults.NotFound();
+            }
 
-                return TypedResults.NoContent(); 
-            })
-            .WithDescription("Deletes a calendar");
+            if (calendar.UserId != userId)
+            {
+                return TypedResults.NotFound();
+            }
+
+            calendar.Edit(calendarData.Name, calendarData.TimeZone);
+            
+            await db.SaveChangesAsync(cancellationToken);
+
+            return TypedResults.NoContent(); 
+        })
+        .WithDescription("Edits an existing calendar");
+        
+        group.MapDelete("/{id:guid}", async Task<Results<NoContent, NotFound>> (CalendarId id, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) => 
+        {
+            var existing = await db.Calendars.FindAsync([id], cancellationToken);
+
+            if (existing is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            if (existing.UserId != userId)
+            {
+                return TypedResults.NotFound();
+            }
+
+            db.Calendars.Remove(existing);
+            await db.SaveChangesAsync(cancellationToken);
+
+            return TypedResults.NoContent(); 
+        })
+        .WithDescription("Deletes a calendar");
         
         return group;   
     }
+
+    
 }

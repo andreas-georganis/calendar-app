@@ -4,7 +4,7 @@ using NodaTime;
 
 namespace Calendar.Domain.Model;
 
-public sealed class FileUpload
+public sealed class File
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenReading)]
     public Guid Id { get; init; }

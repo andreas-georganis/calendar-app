@@ -1,58 +1,111 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Reflection;
+using System.Text.Json.Serialization;
+using Calendar.Domain.Exceptions;
+using Microsoft.AspNetCore.Http;
+using NodaTime;
 
 namespace Calendar.Domain.Model;
 
-public enum EventStatus
-{
-    Confirmed,
-    Tentative,
-    Cancelled
-}
 
-public class Event : Entry
+
+// public readonly record struct EventDateRange(DateTime Start, DateTimeOrDuration? End)
+// {
+//     public DateTimeOrDuration? End {get; init; } = End is { IsDateTime: true } end && end.DateTime < Start ? throw new ArgumentException("End date must be after start date") : End;
+// }
+
+public class Event
 {
     private readonly HashSet<Attendee>? _attendees;
     protected Event() { }
 
     public Event(
-        Guid userId, 
-        Guid calendarId, 
-        string summary, 
-        string? description, 
-        DateTime? start, 
-        DateTimeOrDuration? end, 
+        UserId userId, 
+        CalendarId calendarId, 
+        EventId id,
+        Summary summary, 
+        Description? description,
+        DateTime? start,
+        DateTime? end,
+        Duration? duration,
         Alarm? alarm,
         RecurrenceRule? recurrenceRule, 
-        RecurrenceDateTimes? recurrenceDates,
-        ExceptionDateTimes? exceptionDates,
-        string? location, 
+        RecurrencePeriods? recurrenceDates,
+        ExceptionDates? exceptionDates,
+        Location? location, 
         GeographicPosition? geographicPosition,
-        IEnumerable<Attendee>? attendees)
-        : base(userId, calendarId, summary, description, alarm, recurrenceRule, recurrenceDates, exceptionDates, location, geographicPosition)
+        IEnumerable<Attendee>? attendees, 
+        Instant created)
     {
-        // if (start > end)
-        //     throw new ArgumentException("Start date must be before end date");
         
+        _attendees = attendees is not null ? [.. attendees] : null;
+        
+        
+        UserId = userId;
+        CalendarId = calendarId;
+        Id = id;
+        Summary = summary;
+        Description = description;
         Start = start;
+
+        if (end is not null && duration is not null)
+        {
+            throw new CalendarDomainException("End date and duration cannot be set at the same time");
+        }
+
+        if (end is not null && start is not null && end < start)
+        {
+            throw new CalendarDomainException("End date must be after start date");
+        }
+
         End = end;
-        
-        _attendees = attendees is not null? [..attendees] : null;
-        
+        Duration = duration;
+
+        Alarm = alarm;
+        RecurrenceRule = recurrenceRule;
+        RecurrenceDates = recurrenceDates;
+        ExceptionDates = exceptionDates;
+        Location = location;
+        GeographicPosition = geographicPosition;
+        Created = created;
+
         Status = EventStatus.Confirmed;
     }
+
+    public Summary? Summary { get; protected set; }
+
+    public Description? Description { get; protected set; }
+    public DateTime? Start { get; }
+    public GeographicPosition? GeographicPosition { get; private set; } 
+
+    public RecurrenceRule? RecurrenceRule { get; private set; }
+    public RecurrencePeriods? RecurrenceDates { get; }
+    public ExceptionDates? ExceptionDates { get; }
+    public DateTime? End { get; }
+    public Alarm? Alarm { get; private set; }
+    public Duration? Duration { get; }
+
+    public Location? Location { get; protected set; }
+
+    public SequenceNumber SequenceNumber { get; private set; } = SequenceNumber.Zero;
     
-    public DateTime? Start { get; init; }
+    public Instant Created { get; private set; }
     
-    public DateTimeOrDuration? End { get; init; }
+    public Instant? LastModified { get; private set; }
     
-    public IReadOnlyCollection<Attendee>? Attendees { get; private set; }
+    public IReadOnlyCollection<Attendee>? Attendees => _attendees?.ToList().AsReadOnly();
     
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenReading)]
-    public EventStatus? Status { get; init; }
-    
-    public bool Edit(string? title, string? description, DateTimeOrDuration? end, string? location, GeographicPosition? geolocation)
+    public EventStatus Status { get; }
+
+    public Classification? Classification { get;  }
+
+    public TimeTransparency? Transparency { get; }
+    public UserId UserId { get; }
+    public CalendarId CalendarId { get; }
+    public EventId Id { get; }
+
+    public bool Edit(Event @event)
     {
-        Summary = title;
+        Summary = @event.Summary;
         return true;
     }
 }

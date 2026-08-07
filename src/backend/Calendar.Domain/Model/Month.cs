@@ -17,7 +17,7 @@ public readonly record struct Month : IParsable<Month>
     public int Value { get; }
 
     public static Month Parse(string s, IFormatProvider? provider)
-        => new Month(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Month result)
     {

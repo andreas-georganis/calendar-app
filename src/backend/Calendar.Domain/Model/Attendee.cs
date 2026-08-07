@@ -1,30 +1,14 @@
 ﻿namespace Calendar.Domain.Model;
 
-public enum Role
-{
-    Required,
-    Optional,
-    Chair,
-    NonParticipant
-}
-
-public enum ParticipationStatus
-{
-    NeedsAction,
-    Accepted,
-    Declined,
-    Tentative,
-    Delegated,
-    Completed,
-    InProcess
-}
-
-
 public sealed class Attendee
 {
     public required Uri Address { get; init; }
     
     public string? CommonName { get; init; }
+
+    public CalendarUserType? CuType { get; init; }
+
+    public IReadOnlyCollection<Uri>? Members { get; init; } = [];
     
     public IReadOnlyCollection<Uri>? DelegatedTo { get; init; } = [];
 

@@ -1,10 +1,9 @@
-using Calendar.Domain.Model;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Calendar.Domain.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calendar.Infrastructure;
 
-public class CalendarDbContext : IdentityUserContext<User, Guid>
+public class CalendarDbContext : DbContext
 {
     public CalendarDbContext(DbContextOptions<CalendarDbContext> options): base(options)
     {
@@ -16,8 +15,9 @@ public class CalendarDbContext : IdentityUserContext<User, Guid>
     public DbSet<Event> Events => Set<Event>();
     
     public DbSet<Todo> Todos => Set<Todo>();
+
+    public DbSet<Domain.Model.File> Files => Set<Domain.Model.File>();
     
-    public DbSet<Entry> Entries => Set<Entry>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

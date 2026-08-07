@@ -1,9 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace Calendar.Domain.Model;
 
-public readonly record struct ByMinute : IParsable<ByMinute>
+[JsonConverter(typeof(ParsableJsonConverter<ByMinute>))]
+public sealed record ByMinute : IParsable<ByMinute>
 {
     public IEnumerable<Minute> Value { get; }
 

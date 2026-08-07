@@ -19,7 +19,7 @@ public readonly record struct Hour : IParsable<Hour>
     }
     
     public static Hour Parse(string s, IFormatProvider? provider)
-        => new Hour(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Hour result)
     {

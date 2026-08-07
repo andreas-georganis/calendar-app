@@ -15,7 +15,7 @@ public readonly record struct SetPos : IParsable<SetPos>
     public int Value { get;  }
 
     public static SetPos Parse(string s, IFormatProvider? provider)
-        => new SetPos(int.Parse(s, provider));
+        => new(int.Parse(s, provider));
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out SetPos result)
     {

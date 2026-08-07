@@ -17,11 +17,11 @@ public readonly record struct Period : IParsable<Period>
         Duration = duration;
     }
     
-    public DateTime Start { get; init; }
-        
-    public DateTime? End { get; init; }
+    public DateTime Start { get; } 
+       
+    public DateTime? End { get; }
     
-    public Duration? Duration { get; init; }
+    public Duration? Duration { get; }
 
     public static Period Parse(string s, IFormatProvider? provider) 
         => TryParse(s, provider, out var result) ? result : throw new FormatException();
@@ -42,32 +42,25 @@ public readonly record struct Period : IParsable<Period>
             return false;
         }
 
-        if (!DateTime.TryParse(segments[0], provider, out var dateTime))
-        {
-            result = default;
-            return false;
-        }
-        
-        if (!DateTimeOrDuration.TryParse(segments[1], provider, out var dateTimeOrDuration))
+        if (!DateTime.TryParse(segments[0], provider, out var start))
         {
             result = default;
             return false;
         }
 
-        if (dateTimeOrDuration.TryGetValue(out DateTime? dt))
+        if (Model.Duration.IsValid(segments[1]))
         {
-            result = new Period(dateTime, dt.Value);
-            return true;
-        }
-
-        if (dateTimeOrDuration.TryGetValue(out Duration? duration))
-        {
-            result = new Period(dateTime, duration.Value);
+            result = new Period(start, Model.Duration.Parse(segments[1], provider));
             return true;
         }
         
+        if (!DateTime.TryParse(segments[1], provider, out var end))
+        {
+            result = default;
+            return false;
+        }
         
-        result = default;
-        return false;
+        result = new Period(start, end);
+        return true;
     }
 }

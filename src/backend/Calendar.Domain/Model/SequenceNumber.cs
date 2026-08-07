@@ -1,16 +1,16 @@
 ﻿namespace Calendar.Domain.Model;
 
-public readonly record struct Sequence
+public readonly record struct SequenceNumber
 {
-    public static Sequence Zero => new Sequence(0);
+    public static SequenceNumber Zero => new(0);
     
-    public int Number { get; }
+    public int Value { get; }
 
-    public Sequence(int number)
+    public SequenceNumber(int value)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(number, 0, "Invalid sequence number");
-        Number = number;
+        ArgumentOutOfRangeException.ThrowIfLessThan(value, 0, "Invalid sequence value");
+        Value = value;
     }
     
-    public Sequence Increase() => new Sequence(Number + 1);
+    public SequenceNumber Increase() => new(Value + 1);
 }
