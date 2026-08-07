@@ -1,0 +1,38 @@
+﻿@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+<MudNavMenu>
+    <MudStack Row="true">
+        <MudFabMenu StartIcon="@Icons.Material.Filled.Add" Label="Create" Color="Color.Primary" AlignItems="AlignItems.End" OpenOnMouseHover="false" CloseOnMenuItemClicked="false" Direction="Direction.Bottom">
+            <MudFabMenuItem EndIcon="@Icons.Material.Outlined.LooksOne" Label="Event" Color="Color.Secondary"/>
+            <MudFabMenuItem EndIcon="@Icons.Material.Outlined.LooksTwo" Label="Todo" Color="Color.Secondary"/>
+        </MudFabMenu>
+    </MudStack>
+    
+    @* <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink> *@
+    <Calendar/>
+</MudNavMenu>
+
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}

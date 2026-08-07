@@ -1,22 +1,30 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Asp.Versioning;
-using Calendar.API;
-using Calendar.API.Endpoints;
-using Calendar.API.OpenApi;
-using Calendar.API.RateLimiting;
-using Calendar.Domain.Model;
-using Calendar.Infrastructure;
+using Asp.Versioning.Builder;
+using CalendarApp.API;
+using CalendarApp.API.Endpoints;
+using CalendarApp.API.Infrastructure;
+using CalendarApp.API.OpenApi;
+using CalendarApp.API.RateLimiting;
+using CalendarApp.Contracts;
+using CalendarApp.ServiceDefaults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
-using DateTime = System.DateTime;
+using Scalar.AspNetCore;
+using User = CalendarApp.API.Model.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.Services.AddDataProtection(o => o.ApplicationDiscriminator = nameof(CalendarApp));
+
 builder.Services.AddValidation();
+
 builder.Services.AddProblemDetails();
 
 builder.Services.ConfigureHttpJsonOptions(o =>
@@ -33,12 +41,12 @@ builder.Services.AddAuthorizationBuilder()
     .AddCurrentUser();
 
 builder.Services.AddIdentityCore<User>(o=>o.User.RequireUniqueEmail = true)
-    .AddEntityFrameworkStores<CalendarDbContext>();
-//.AddApiEndpoints();
+    .AddEntityFrameworkStores<CalendarAppDbContext>();
+    //.AddApiEndpoints();
 
-builder.AddSqlServerDbContext<CalendarDbContext>("CalendarDb", 
+builder.AddSqlServerDbContext<CalendarAppDbContext>("CalendarAppDb", 
     configureDbContextOptions: options => options
-        .UseSqlServer(builder.Configuration.GetConnectionString("CalendarDb"),
+        .UseSqlServer(builder.Configuration.GetConnectionString("CalendarAppDb"),
             optionsBuilder =>
             {
                 optionsBuilder.UseCompatibilityLevel(170);
@@ -48,14 +56,8 @@ builder.AddSqlServerDbContext<CalendarDbContext>("CalendarDb",
 builder.Services.AddOpenApi(o =>
 {
     o.AddDocumentTransformer<BearerOpenApiTransformer>();
-    o.AddSchemaTransformer<NodaTimeTransformer>();
+    o.AddOperationTransformer<BearerOpenApiTransformer>();
 });
-
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-builder.Services.AddSingleton<IClock>(NodaTime.SystemClock.Instance);
 
 builder.Services.AddRateLimiting(builder.Configuration);
 
@@ -79,18 +81,44 @@ builder.Services.AddApiVersioning(o =>
 
 builder.Services.AddOpenTelemetry().WithTracing(o=>o.AddSource("Microsoft.AspNetCore"));
 
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.Title = "Calendar API";
+        options.Servers = [];
+        options.Authentication = new ScalarAuthenticationOptions { PreferredSecuritySchemes = ["Bearer"] };
+        options.Theme = ScalarTheme.Saturn;
+        options.Layout = ScalarLayout.Modern;
+        options.HideClientButton = true;
+        options.DefaultFonts = false;
+    });
 }
 
 app.UseHttpsRedirection();
 
-app.MapFileApi();
+app.MapGet("/", () => TypedResults.Redirect("/scalar/v1")).ExcludeFromDescription();
+
+ApiVersionSet apiVersionSet = app.NewApiVersionSet()
+    .HasApiVersion(new ApiVersion(1))
+    .ReportApiVersions()
+    .Build();
+
+RouteGroupBuilder group = app
+    .MapGroup("api/v{version:apiVersion}")
+    .WithApiVersionSet(apiVersionSet);
+
+group.MapIdentityApi()
+    .MapCalendarApi()
+    .MapCalendarEntryApi();
 
 app.Run();

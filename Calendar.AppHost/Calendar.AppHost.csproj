@@ -1,0 +1,23 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.1.0">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UserSecretsId>88e15a2f-d8d3-4f5e-a807-965fce2482bc</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.AppHost"/>
+        <PackageReference Include="Aspire.Hosting.SqlServer" />
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Calendar.API.Migrator\Calendar.API.Migrator.csproj" />
+      <ProjectReference Include="..\Calendar.API\Calendar.API.csproj" />
+      <ProjectReference Include="..\CalendarApp.Web\CalendarApp.Web\CalendarApp.Web.csproj" />
+    </ItemGroup>
+
+</Project>

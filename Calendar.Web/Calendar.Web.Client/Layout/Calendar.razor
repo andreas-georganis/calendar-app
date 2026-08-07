@@ -1,0 +1,45 @@
+@using global::Calendar.Web.Client.Services
+
+@inject ICalendarClient CalendarClient
+@inject StateContainer StateContainer
+
+<MudPaper>
+    <MudList T="global::Calendar.Contracts.Calendar" 
+             SelectionMode="SelectionMode.MultiSelection" 
+             CheckBoxColor="Color.Tertiary" 
+             Padding="true" 
+             @bind-SelectedValues="SelectedCalendars">
+        <MudListSubheader>
+            My calendars
+        </MudListSubheader>
+        
+            @foreach (var calendar in Calendars)
+            {
+                <MudListItem Text="@calendar.Name" Value="@calendar">
+                </MudListItem>
+            }
+
+    </MudList>
+</MudPaper>
+
+@code {
+
+    private IEnumerable<global::Calendar.Contracts.Calendar> Calendars { get; set; } = [];
+
+    private IReadOnlyCollection<global::Calendar.Contracts.Calendar> SelectedCalendars
+    {
+        get;
+        set
+        {
+            field = value;
+            StateContainer.ActiveCalendars = value;
+        }
+    } = [];
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Calendars = await CalendarClient.GetCalendars();
+
+        SelectedCalendars = [..StateContainer.ActiveCalendars.Intersect(Calendars)];
+    }
+}

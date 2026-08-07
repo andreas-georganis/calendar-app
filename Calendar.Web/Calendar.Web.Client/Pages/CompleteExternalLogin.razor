@@ -1,0 +1,87 @@
+@page "/signin/{provider}/complete"
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Choose your username</h3>
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="CompleteExternalLoginForm">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidationSummary></ValidationSummary>
+    
+    <div class="mb-3">
+        <label>Username</label>
+        <InputText @bind-Value="_model!.Username" class="form-control"/>
+        <ValidationMessage For="() => _model.Username"></ValidationMessage>
+    </div>
+    
+    <button class="btn btn-primary" type="submit" disabled="@_submitting">
+        Continue
+    </button>
+    
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <div class="text-danger mt-2">@_error</div>
+    }
+</EditForm>
+
+@code {
+    
+    [Parameter]
+    public string Provider { get; set; } = default!;
+    
+    [SupplyParameterFromQuery] 
+    public string? ReturnUrl { get; set; }
+    
+    private bool _submitting;
+    private string? _error;
+    
+    [SupplyParameterFromForm]
+    private CompleteExternalLoginModel? _model { get; set; }
+
+    protected override void OnInitialized()
+        => _model ??= new();
+
+    private class CompleteExternalLoginModel
+    {
+        [Required]
+        [MinLength(3)]
+        [MaxLength(20)]
+        [RegularExpression("^[a-zA-Z0-9._-]+$", ErrorMessage = "Only letters, numbers, dot, underscore, dash.")]
+        public string? Username { get; set; }
+    }
+
+    private async Task SubmitAsync()
+    {
+        _error = null;
+        _submitting = true;
+
+        try
+        {
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["username"] = _model.Username,
+                ["returnUrl"] = ReturnUrl
+            });
+            
+            var response = await Http.PostAsync($"/api/signin/{Provider}/complete", content);
+            
+           if (!response.IsSuccessStatusCode)
+           {
+               var errorResponse = await response.Content.ReadAsStringAsync();
+               _error = errorResponse ?? "An unknown error occurred.";
+               return;
+           }
+           
+           Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}   

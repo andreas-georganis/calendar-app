@@ -1,0 +1,17 @@
+@page "/"
+@using Calendar.Web.Client.Services
+
+@inject IEntryClient EntryClient
+
+<PageTitle>Timeline</PageTitle>
+
+
+<MudCalendar T="CalendarItem" CellClicked="CellClicked" />
+
+@code {
+    
+    private Task CellClicked(DateTime dateTime)
+    {
+       return Task.CompletedTask;
+    }
+}
