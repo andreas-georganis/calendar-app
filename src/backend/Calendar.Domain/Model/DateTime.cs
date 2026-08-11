@@ -29,24 +29,24 @@ public readonly partial record struct DateTime
     private readonly ZonedDateTime? _zoned;
     private readonly LocalDate? _date;
 
-    private DateTime(LocalDate date)
+    internal DateTime(LocalDate date)
     {
         _date = date;
         Value = date.AtMidnight().InUtc().ToInstant();
     }
 
-    private DateTime(LocalDate date, LocalTime time)
+    internal DateTime(LocalDate date, LocalTime time)
         : this(date.At(time))
     {
     }
 
-    private DateTime(LocalDate date, LocalTime time, DateTimeZone zone)
+    internal DateTime(LocalDate date, LocalTime time, DateTimeZone zone)
         : this(date.At(time), zone)
     {
 
     }
 
-    private DateTime(LocalDateTime floating)
+    internal DateTime(LocalDateTime floating)
     {
         _floating = floating;
         Value = floating.InUtc().ToInstant();
@@ -70,9 +70,22 @@ public readonly partial record struct DateTime
         Value = zoned.ToInstant();
     }
 
-
-
     public Instant Value { get; }
+
+    public LocalDate Date
+        => _date ?? _zoned?.Date ?? _floating?.Date ?? _utc?.InUtc().Date ?? throw new InvalidOperationException("No valid date representation available.");
+
+    public LocalTime? Time
+        => _floating?.TimeOfDay ?? _zoned?.TimeOfDay ?? _utc?.InUtc().TimeOfDay;
+
+    public DateTimeZone? Zone
+        => _zoned?.Zone;
+
+    public static DateTime operator +(DateTime dateTime, Duration duration)
+        => new DateTime(dateTime.Value + duration.GetTime());
+
+    public static DateTime operator -(DateTime dateTime, Duration duration)
+        => new DateTime(dateTime.Value - duration.GetTime());
 
     public static DateTime Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var result)

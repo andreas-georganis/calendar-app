@@ -1,5 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 using Calendar.Domain.Exceptions;
+
+using Ical.Net;
+using Ical.Net.DataTypes;
+using Ical.Net.Evaluation;
+
 using NodaTime;
 
 namespace Calendar.Domain.Model;
@@ -21,7 +26,8 @@ public sealed class Todo
         Priority? priority,
         Alarm? alarm,
         RecurrenceRule? recurrenceRule,
-        RecurrencePeriods? recurrenceDates,
+        RecurrencePeriods? recurrencePeriods,
+        RecurrenceDates? recurrenceDates,
         ExceptionDates? exceptionDates,
         Location? location,
         GeographicPosition? geographicPosition, 
@@ -50,6 +56,7 @@ public sealed class Todo
         Priority = priority;
         Alarm = alarm;
         RecurrenceRule = recurrenceRule;
+        RecurrencePeriods = recurrencePeriods;
         RecurrenceDates = recurrenceDates;
         ExceptionDates = exceptionDates;
         Location = location;
@@ -70,7 +77,8 @@ public sealed class Todo
     public GeographicPosition? GeographicPosition { get; private set; } 
 
     public RecurrenceRule? RecurrenceRule { get; private set; }
-    public RecurrencePeriods? RecurrenceDates { get; }
+    public RecurrencePeriods? RecurrencePeriods { get; }
+    public RecurrenceDates? RecurrenceDates { get; }
     public ExceptionDates? ExceptionDates { get; }
 
     public Alarm? Alarm { get; private set; }
@@ -93,7 +101,7 @@ public sealed class Todo
     public Instant? Completed { get; private set; }
 
     public Classification? Classification { get; init; }
-    
+
     public bool Edit(Todo todo)
     {
         return true;
@@ -110,5 +118,34 @@ public sealed class Todo
         Completed = clock.GetCurrentInstant();
     }
 
-   
+    public IEnumerable<Todo> GetOccurrences(DateTime? start = null, DateTime? end = null)
+    {
+        var icalTodo = this.ToIcal();
+
+        CalDateTime? startTime = null;
+        CalDateTime? dueTime = null;
+
+        start ??= this.Start;
+        end ??= this.Due;
+
+        if (start is not null)
+        {
+            startTime = new CalDateTime(start.Value.Date.Year, start.Value.Date.Month, start.Value.Date.Day, start.Value.Time?.Hour ?? 0, start.Value.Time?.Minute ?? 0, start.Value.Time?.Second ?? 0, start.Value.Zone?.Id);
+        }
+
+        var evaluationOptions = new EvaluationOptions
+        {
+            
+        };
+
+        var occurrences = icalTodo.GetOccurrences(startTime, evaluationOptions);
+
+          if (end is not null)
+        {
+            dueTime = new CalDateTime(end.Value.Date.Year, end.Value.Date.Month, end.Value.Date.Day, end.Value.Time?.Hour ?? 0, end.Value.Time?.Minute ?? 0, end.Value.Time?.Second ?? 0, end.Value.Zone?.Id);
+            occurrences = occurrences.TakeWhileBefore(dueTime);
+        }
+
+        return occurrences.Select(o => o.Source.ToDomain()).OfType<Todo>();
+    }
 }

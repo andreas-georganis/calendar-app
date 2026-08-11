@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
+using NodaTime;
+
 namespace Calendar.Domain.Model;
 
 
@@ -83,7 +85,7 @@ public class RecurrenceRule
 
     public Frequency Frequency { get; }
 
-    public Interval? Interval { get; } 
+    public Interval Interval { get; } 
     
     public DateTime? Until { get; }
 
@@ -99,7 +101,7 @@ public class RecurrenceRule
     public ByYearDay? ByYearDay { get;  }
     public BySetPos? BySetPos { get; }
     
-    public DayOfWeek WeekStart { get; } = DayOfWeek.Monday;
+    public IsoDayOfWeek WeekStart { get; } = IsoDayOfWeek.Monday;
 }
 
 

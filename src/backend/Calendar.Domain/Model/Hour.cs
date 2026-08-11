@@ -8,7 +8,7 @@ public readonly record struct Hour : IParsable<Hour>
 {
     public int Value { get; }
 
-    private Hour(int value)
+    public Hour(int value)
     {
         if (value is < 0 or > 23)
         {

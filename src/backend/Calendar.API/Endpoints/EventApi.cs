@@ -1,7 +1,7 @@
 ﻿using Calendar.Domain.Model;
 using Calendar.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
-using DateTime = System.DateTime;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calendar.API.Endpoints;
 
@@ -12,32 +12,37 @@ public static class EventApi
         var group = app.MapGroup("/events")
             .WithTags("Events")
             .RequireAuthorization();
+
+        var calendarGroup = app.MapGroup("/calendars/{calendarId:guid}/events")
+            .WithTags("Events")
+            .RequireAuthorization();
+
+        calendarGroup.MapGet("/", async Task<Ok<IEnumerable<Contracts.Event>>> (Domain.Model.CalendarId calendarId, CalendarDbContext db, UserId userId, Domain.Model.DateTime from, Domain.Model.DateTime to, CancellationToken cancellationToken) =>
+        {
+            var events = await db.Events
+                .Where(e => e.CalendarId == calendarId && e.UserId == userId)
+                .Where(e =>
+                        (e.RecurrenceRule == null &&
+                         (e.Start <= to) &&
+                         (
+                             (e.End != null && e.End >= from)
+                             || (e.End == null && e.Duration == null && e.Start >= from)
+                             || (e.End == null && e.Duration != null && (e.Start + e.Duration >= from))
+                         ))
+                        ||
+                        (e.RecurrenceRule != null && 
+                         (e.Start <= to) &&
+                         (e.RecurrenceRule.Until == null ||
+                          e.RecurrenceRule.Until >= from))
+                    )
+                .ToListAsync(cancellationToken);
+
+            var occurrences = events.SelectMany(e => e.GetOccurrences(from, to)).Select(e => ToContract(e));
+
+            return TypedResults.Ok(occurrences);
+        });
         
-        // group.MapGet("/",
-        //     async (Guid[] calendarIds, CalendarDbContext db, CurrentUser user, IOccurrenceCalculator occurrenceCalculator, DateTimeOffset? from,  DateTimeOffset? to) =>
-        //     {
-        //         to ??= DateTime.UtcNow; 
-        //         from??= to.Value.AddDays(-7);
-        //         
-        //         var entries = await db.Entries.AsNoTracking()
-        //             .Where(e => ((IEnumerable<Guid>)calendarIds).Contains(e.CalendarId) && e.UserId == user.Id)
-        //             .Where(e =>
-        //                 (e.Recurrence == null && (e.Start.Value >= from) && (e.Start.Value <= to))
-        //                 ||
-        //                 (e.Recurrence != null && 
-        //                  (e.Start.Value <= to.Value) &&
-        //                  (e.Recurrence.End!.Until == null ||
-        //                   e.Recurrence.End.Until.Value >= from))
-        //             )
-        //             .ToListAsync();
-        //
-        //         var occurrences = entries.SelectMany(e => e.GetOccurrences(occurrenceCalculator, 
-        //             new Model.DateTime(from.Value.UtcDateTime), new Model.DateTime(to.Value.UtcDateTime)));
-        //
-        //         return occurrences.Select(e => e.ToContract()).ToList();
-        //     });
-        
-        app.MapPost("/calendars/{calendarId:guid}/events", async Task<Results<Created<Event>, NotFound>> (Domain.Model.CalendarId calendarId, Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
+        calendarGroup.MapPost("/", async Task<Results<Created<Contracts.Event>, NotFound>> (Domain.Model.CalendarId calendarId, Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
         {
             if (await db.Calendars.FindAsync([calendarId], cancellationToken) is not { } calendar || calendar.UserId != userId)
             {
@@ -48,7 +53,7 @@ public static class EventApi
             
             await db.SaveChangesAsync(cancellationToken);
 
-            return TypedResults.Created($"/events/{@event.Id}", @event);
+            return TypedResults.Created($"/events/{@event.Id}", ToContract(@event));
         });
         
         group.MapPut("{id:guid}", async Task<Results<NoContent, BadRequest<string>, NotFound>> (Domain.Model.EventId id, Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>

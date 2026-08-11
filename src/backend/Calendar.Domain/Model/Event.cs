@@ -1,17 +1,12 @@
-﻿using System.Reflection;
-using System.Text.Json.Serialization;
-using Calendar.Domain.Exceptions;
-using Microsoft.AspNetCore.Http;
+﻿using Calendar.Domain.Exceptions;
+
+using Ical.Net;
+using Ical.Net.DataTypes;
+using Ical.Net.Evaluation;
+
 using NodaTime;
 
 namespace Calendar.Domain.Model;
-
-
-
-// public readonly record struct EventDateRange(DateTime Start, DateTimeOrDuration? End)
-// {
-//     public DateTimeOrDuration? End {get; init; } = End is { IsDateTime: true } end && end.DateTime < Start ? throw new ArgumentException("End date must be after start date") : End;
-// }
 
 public class Event
 {
@@ -29,7 +24,8 @@ public class Event
         Duration? duration,
         Alarm? alarm,
         RecurrenceRule? recurrenceRule, 
-        RecurrencePeriods? recurrenceDates,
+        RecurrencePeriods? recurrencePeriods,
+        RecurrenceDates? recurrenceDates,
         ExceptionDates? exceptionDates,
         Location? location, 
         GeographicPosition? geographicPosition,
@@ -62,6 +58,7 @@ public class Event
 
         Alarm = alarm;
         RecurrenceRule = recurrenceRule;
+        RecurrencePeriods = recurrencePeriods;
         RecurrenceDates = recurrenceDates;
         ExceptionDates = exceptionDates;
         Location = location;
@@ -78,7 +75,8 @@ public class Event
     public GeographicPosition? GeographicPosition { get; private set; } 
 
     public RecurrenceRule? RecurrenceRule { get; private set; }
-    public RecurrencePeriods? RecurrenceDates { get; }
+    public RecurrencePeriods? RecurrencePeriods { get; }
+    public RecurrenceDates? RecurrenceDates { get; }
     public ExceptionDates? ExceptionDates { get; }
     public DateTime? End { get; }
     public Alarm? Alarm { get; private set; }
@@ -107,5 +105,36 @@ public class Event
     {
         Summary = @event.Summary;
         return true;
+    }
+
+    public IEnumerable<Event> GetOccurrences(DateTime? start = null, DateTime? end = null)
+    {
+        var icalEvent = this.ToIcal();
+
+        CalDateTime? startTime = null;
+        CalDateTime? dueTime = null;
+
+        start ??= this.Start;
+        end ??= this.End;
+
+        if (start is not null)
+        {
+            startTime = new CalDateTime(start.Value.Date.Year, start.Value.Date.Month, start.Value.Date.Day, start.Value.Time?.Hour ?? 0, start.Value.Time?.Minute ?? 0, start.Value.Time?.Second ?? 0, start.Value.Zone?.Id);
+        }
+
+        var evaluationOptions = new EvaluationOptions
+        {
+            
+        };
+
+        var occurrences = icalEvent.GetOccurrences(startTime, evaluationOptions);
+
+          if (end is not null)
+        {
+            dueTime = new CalDateTime(end.Value.Date.Year, end.Value.Date.Month, end.Value.Date.Day, end.Value.Time?.Hour ?? 0, end.Value.Time?.Minute ?? 0, end.Value.Time?.Second ?? 0, end.Value.Zone?.Id);
+            occurrences = occurrences.TakeWhileBefore(dueTime);
+        }
+
+        return occurrences.Select(o => o.Source.ToDomain()).OfType<Event>();
     }
 }
