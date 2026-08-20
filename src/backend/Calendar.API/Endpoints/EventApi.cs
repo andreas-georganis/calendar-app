@@ -3,6 +3,8 @@ using Calendar.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
+using NodaTime;
+
 namespace Calendar.API.Endpoints;
 
 public static class EventApi
@@ -17,7 +19,7 @@ public static class EventApi
             .WithTags("Events")
             .RequireAuthorization();
 
-        calendarGroup.MapGet("/", async Task<Ok<IEnumerable<Contracts.Event>>> (Domain.Model.CalendarId calendarId, CalendarDbContext db, UserId userId, Domain.Model.DateTime from, Domain.Model.DateTime to, CancellationToken cancellationToken) =>
+        calendarGroup.MapGet("/", async Task<Ok<IEnumerable<Contracts.Event>>> (Domain.Model.CalendarId calendarId, CalendarDbContext db, UserId userId, Domain.Model.CalDateTime from, Domain.Model.CalDateTime to, CancellationToken cancellationToken) =>
         {
             var events = await db.Events
                 .Where(e => e.CalendarId == calendarId && e.UserId == userId)
@@ -27,7 +29,7 @@ public static class EventApi
                          (
                              (e.End != null && e.End >= from)
                              || (e.End == null && e.Duration == null && e.Start >= from)
-                             || (e.End == null && e.Duration != null && (e.Start + e.Duration >= from))
+                             || (e.End == null && e.Duration != null && (e.Start + e.Duration.Value >= from))
                          ))
                         ||
                         (e.RecurrenceRule != null && 
@@ -42,28 +44,36 @@ public static class EventApi
             return TypedResults.Ok(occurrences);
         });
         
-        calendarGroup.MapPost("/", async Task<Results<Created<Contracts.Event>, NotFound>> (Domain.Model.CalendarId calendarId, Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
+        calendarGroup.MapPost("/", async Task<Results<Created<Contracts.Event>, NotFound>> (Domain.Model.CalendarId calendarId, API.Contracts.Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
         {
             if (await db.Calendars.FindAsync([calendarId], cancellationToken) is not { } calendar || calendar.UserId != userId)
             {
                 return TypedResults.NotFound();
             }
 
-            Event @event = calendar.AddEvent(eventData);
+            var @event = eventData.ToDomain(userId, calendarId);
+            _ = calendar.AddEvent(@event);
             
             await db.SaveChangesAsync(cancellationToken);
 
             return TypedResults.Created($"/events/{@event.Id}", ToContract(@event));
         });
         
-        group.MapPut("{id:guid}", async Task<Results<NoContent, BadRequest<string>, NotFound>> (Domain.Model.EventId id, Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
+        group.MapPut("{id:guid}", async Task<Results<NoContent, BadRequest<string>, NotFound>> (Domain.Model.EventId id, Contracts.Event eventData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
         {
             if (await db.Events.FindAsync([id], cancellationToken) is not { } @event || @event.UserId != userId)
             {
                 return TypedResults.NotFound();
             }
 
-            @event.Edit(eventData);
+            @event.Edit(
+                summary: eventData.Summary,
+                description: eventData.Description,
+                location: eventData.Location,
+                geographicPosition: eventData.GeographicPosition,
+                alarm: eventData.Alarm,
+                recurrenceRule: eventData.RecurrenceRule
+            );
             
             await db.SaveChangesAsync(cancellationToken);
 
@@ -85,28 +95,58 @@ public static class EventApi
 
         return group;
 
-        static API.Contracts.Event ToContract(Domain.Model.Event @event)
+        
+    }
+
+    extension(Domain.Model.Event @event)
+    {
+        public Contracts.Event ToContract()
         {
-            return new API.Contracts.Event
+            return new Contracts.Event
             {
-                CalendarId = @event.CalendarId,
                 Id = @event.Id,
+                CalendarId = @event.CalendarId,
+                Summary = @event.Summary,
+                Description = @event.Description,
                 Start = @event.Start,
                 End = @event.End,
                 Duration = @event.Duration,
-                Summary = @event.Summary,
-                Description = @event.Description,
-                Status = @event.Status,
-                Location = @event.Location,
-                RecurrenceRule = @event.RecurrenceRule,
-                GeographicPosition = @event.GeographicPosition,
                 Alarm = @event.Alarm,
-                Classification = @event.Classification,
-                Transparency = @event.Transparency,
-                Created = @event.Created,
-                LastModified = @event.LastModified,
-                //Links = @event.Links.ToList()
+                RecurrenceRule = @event.RecurrenceRule,
+                RecurrencePeriods = @event.RecurrencePeriods,
+                RecurrenceDates = @event.RecurrenceDates,
+                ExceptionDates = @event.ExceptionDates,
+                Location = @event.Location,
+                GeographicPosition = @event.GeographicPosition,
+                Attendees = @event.Attendees?.ToList(),
+                Created = @event.Created
             };
         }
     }
+
+    extension(Contracts.Event @event)
+    {
+        public Domain.Model.Event ToDomain(UserId id, CalendarId calendarId)
+        {
+            return new Domain.Model.Event(
+                userId: id,
+                calendarId: calendarId,
+                id: @event.Id,
+                summary: @event.Summary,
+                description: @event.Description,
+                start: @event.Start,
+                end: @event.End,
+                duration: @event.Duration,
+                alarm: @event.Alarm,
+                recurrenceRule: @event.RecurrenceRule,
+                recurrencePeriods: null, // TODO
+                recurrenceDates: null, // TODO
+                exceptionDates: null, // TODO
+                location: @event.Location,
+                geographicPosition: @event.GeographicPosition,
+                attendees: null, // TODO
+                created: @event.Created
+            );
+        }
+    } 
 }

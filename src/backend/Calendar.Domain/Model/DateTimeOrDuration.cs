@@ -8,10 +8,10 @@ namespace Calendar.Domain.Model;
 [JsonConverter(typeof(ParsableJsonConverter<DateTimeOrDuration>))]
 public readonly record struct DateTimeOrDuration: IParsable<DateTimeOrDuration>
 {
-    private readonly DateTime? _dateTime;
+    private readonly CalDateTime? _dateTime;
     private readonly Duration? _duration;
     
-    public DateTimeOrDuration(DateTime dateTime)
+    public DateTimeOrDuration(CalDateTime dateTime)
     {
         _dateTime = dateTime;
         _duration = null;
@@ -23,22 +23,22 @@ public readonly record struct DateTimeOrDuration: IParsable<DateTimeOrDuration>
         _dateTime = null;
     }
     
-    public DateTime? DateTime => _dateTime;
+    public CalDateTime? DateTime => _dateTime;
 
     public Duration? Duration => _duration;
 
-    public bool IsDateTime => _dateTime.HasValue;
+    public bool IsDateTime => _dateTime is not null;
     
-    public bool TryGetValue([NotNullWhen(true)]out DateTime? dateTime)
+    public bool TryGetValue([NotNullWhen(true)]out CalDateTime? dateTime)
     {
         dateTime = _dateTime;
-        return dateTime.HasValue;
+        return dateTime is not null;
     }
     
     public bool TryGetValue([NotNullWhen(true)] out Duration? duration)
     {
         duration = _duration;
-        return duration.HasValue;
+        return duration is not null;
     }
 
     public static DateTimeOrDuration Parse(string s, IFormatProvider? provider)
@@ -54,7 +54,7 @@ public readonly record struct DateTimeOrDuration: IParsable<DateTimeOrDuration>
             return true;
         }
         
-        Model.DateTime.TryParse(s,provider, out var dateTime);
+        Model.CalDateTime.TryParse(s,provider, out var dateTime);
 
         if (dateTime != default)
         {

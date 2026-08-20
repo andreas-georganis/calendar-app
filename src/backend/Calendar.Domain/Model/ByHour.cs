@@ -9,9 +9,9 @@ public sealed record ByHour : IParsable<ByHour>
 {
     public IEnumerable<Hour> Value { get; }
 
-    public ByHour(IEnumerable<Hour> values)
+    public ByHour(IEnumerable<Hour> value)
     {
-        Value = values.ToImmutableHashSet();
+        Value = value.ToImmutableHashSet();
     }
 
     public static ByHour Parse(string s, IFormatProvider? provider)

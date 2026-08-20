@@ -10,7 +10,7 @@ builder.Services.AddMigration<CalendarDbContext>();
 
 builder.Services.AddPooledDbContextFactory<CalendarDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CalendarDb"), sqlOptions => 
-        sqlOptions.MigrationsAssembly("Calendar.Migrator")));
+        sqlOptions.MigrationsAssembly("Calendar.Migrator").UseNodaTime())); // use defaults
 
 builder.EnrichSqlServerDbContext<CalendarDbContext>();
 

@@ -1,14 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-
+using System.Text.Json.Serialization;
 namespace Calendar.Domain.Model;
 
+[JsonConverter(typeof(ParsableJsonConverter<RecurrencePeriods>))]
 public sealed class RecurrencePeriods : IEnumerable<Period>, IParsable<RecurrencePeriods>
 {
     static RecurrencePeriods Empty => new(ImmutableList<Period>.Empty);
     
     private readonly ImmutableList<Period> _values;
+
+    // Required by EF Core to materialize this complex type via field access.
+    private RecurrencePeriods()
+    {
+        _values = [];
+    }
 
     public RecurrencePeriods(IEnumerable<Period> values)
     {

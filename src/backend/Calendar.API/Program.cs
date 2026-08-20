@@ -35,18 +35,19 @@ builder.Services.AddAuthentication().AddJwtBearer(IdentityConstants.BearerScheme
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContextPool<CalendarDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CalendarDb"), sqlOptions => 
-        sqlOptions.UseCompatibilityLevel(170).EnableRetryOnFailure())); // use defaults
+// builder.Services.AddDbContext<CalendarDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("CalendarDb"), sqlOptions => 
+//         sqlOptions.UseCompatibilityLevel(170).EnableRetryOnFailure().UseNodaTime())); // use defaults
 
-// builder.AddSqlServerDbContext<CalendarDbContext>("CalendarDb", 
-//     configureDbContextOptions: options => options
-//         .UseSqlServer(builder.Configuration.GetConnectionString("CalendarDb"),
-//             optionsBuilder =>
-//             {
-//                 optionsBuilder.UseCompatibilityLevel(170);
-//                 optionsBuilder.EnableRetryOnFailure(); // use defaults
-//             }));
+builder.AddSqlServerDbContext<CalendarDbContext>("CalendarDb", 
+    configureDbContextOptions: options => options
+        .UseSqlServer(builder.Configuration.GetConnectionString("CalendarDb"),
+            optionsBuilder =>
+            {
+                optionsBuilder.UseCompatibilityLevel(170);
+                optionsBuilder.EnableRetryOnFailure();
+                optionsBuilder.UseNodaTime();
+            }));
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(o =>
@@ -76,8 +77,7 @@ builder.Services.AddApiVersioning(o =>
     {
         options.GroupNameFormat = "'v'V";
         options.SubstituteApiVersionInUrl = true;
-    })
-    .EnableApiVersionBinding();
+    });
 
 builder.Services.AddOpenTelemetry().WithTracing(o => o.AddSource("Microsoft.AspNetCore"));
 

@@ -3,7 +3,7 @@
 
 public sealed class Journal
 {
-    public DateTime? Start { get; init; }
+    public CalDateTime? Start { get; init; }
     
     public JournalStatus? Status { get; init; }
     

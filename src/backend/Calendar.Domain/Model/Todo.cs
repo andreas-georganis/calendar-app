@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+﻿
 using Calendar.Domain.Exceptions;
 
 using Ical.Net;
@@ -20,8 +20,8 @@ public sealed class Todo
         TodoId id,
         Summary summary, 
         Description? description,
-        DateTime? start,
-        DateTime? due,
+        CalDateTime? start,
+        CalDateTime? due,
         Duration? duration,
         Priority? priority,
         Alarm? alarm,
@@ -34,13 +34,6 @@ public sealed class Todo
         Classification? classification,
         Instant created)
     {
-        UserId = userId;
-        CalendarId = calendarId;
-        Id = id;
-        Summary = summary;
-        Description = description;
-        Start = start;
-
         if (due is not null && duration is not null)
         {
             throw new CalendarDomainException("Due date and duration cannot be set at the same time");
@@ -51,6 +44,17 @@ public sealed class Todo
             throw new CalendarDomainException("Due date must be after start date");
         }
 
+        if (recurrencePeriods is not null && recurrenceDates is not null)
+        {
+            throw new CalendarDomainException("Recurrence periods and recurrence dates cannot be set at the same time");
+        }
+
+        UserId = userId;
+        CalendarId = calendarId;
+        Id = id;
+        Summary = summary;
+        Description = description;
+        Start = start;
         Due = due;
         Duration = duration;
         Priority = priority;
@@ -73,7 +77,7 @@ public sealed class Todo
     public Summary? Summary { get; private set; }
 
     public Description? Description { get; private set; }
-    public DateTime? Start { get; }
+    public CalDateTime? Start { get; }
     public GeographicPosition? GeographicPosition { get; private set; } 
 
     public RecurrenceRule? RecurrenceRule { get; private set; }
@@ -85,13 +89,12 @@ public sealed class Todo
 
     public Location? Location { get; private set; }
 
-    [JsonIgnore]
     public SequenceNumber SequenceNumber { get; private set; } = SequenceNumber.Zero;
     
     public Instant Created { get; private set; }
     
     public Instant? LastModified { get; private set; }
-    public DateTime? Due { get; }
+    public CalDateTime? Due { get; }
     public Duration? Duration { get; }
     public Priority? Priority { get; private set; }
 
@@ -102,8 +105,16 @@ public sealed class Todo
 
     public Classification? Classification { get; init; }
 
-    public bool Edit(Todo todo)
+    public bool Edit(Summary? summary, Description? description, Location? location, GeographicPosition? geographicPosition, Alarm? alarm, RecurrenceRule? recurrenceRule, Priority? priority)
     {
+        Summary = summary;
+        Description = description;
+        Location = location;
+        GeographicPosition = geographicPosition;
+        Alarm = alarm;
+        RecurrenceRule = recurrenceRule;
+        Priority = priority;
+
         return true;
     }
     
@@ -118,19 +129,19 @@ public sealed class Todo
         Completed = clock.GetCurrentInstant();
     }
 
-    public IEnumerable<Todo> GetOccurrences(DateTime? start = null, DateTime? end = null)
+    public IEnumerable<Todo> GetOccurrences(CalDateTime? start = null, CalDateTime? end = null)
     {
         var icalTodo = this.ToIcal();
 
-        CalDateTime? startTime = null;
-        CalDateTime? dueTime = null;
+        Ical.Net.DataTypes.CalDateTime? startTime = null;
+        Ical.Net.DataTypes.CalDateTime? dueTime = null;
 
         start ??= this.Start;
         end ??= this.Due;
 
         if (start is not null)
         {
-            startTime = new CalDateTime(start.Value.Date.Year, start.Value.Date.Month, start.Value.Date.Day, start.Value.Time?.Hour ?? 0, start.Value.Time?.Minute ?? 0, start.Value.Time?.Second ?? 0, start.Value.Zone?.Id);
+            startTime = new Ical.Net.DataTypes.CalDateTime(start.Date.Year, start.Date.Month, start.Date.Day, start.Time?.Hour ?? 0, start.Time?.Minute ?? 0, start.Time?.Second ?? 0, start.Zone?.Id);
         }
 
         var evaluationOptions = new EvaluationOptions
@@ -142,7 +153,7 @@ public sealed class Todo
 
           if (end is not null)
         {
-            dueTime = new CalDateTime(end.Value.Date.Year, end.Value.Date.Month, end.Value.Date.Day, end.Value.Time?.Hour ?? 0, end.Value.Time?.Minute ?? 0, end.Value.Time?.Second ?? 0, end.Value.Zone?.Id);
+            dueTime = new Ical.Net.DataTypes.CalDateTime(end.Date.Year, end.Date.Month, end.Date.Day, end.Time?.Hour ?? 0, end.Time?.Minute ?? 0, end.Time?.Second ?? 0, end.Zone?.Id);
             occurrences = occurrences.TakeWhileBefore(dueTime);
         }
 

@@ -1,28 +1,35 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-
+using System.Text.Json.Serialization;
 namespace Calendar.Domain.Model;
 
-public sealed class ExceptionDates : IEnumerable<DateTime>, IParsable<ExceptionDates>
+[JsonConverter(typeof(ParsableJsonConverter<ExceptionDates>))]
+public sealed class ExceptionDates : IEnumerable<CalDateTime>, IParsable<ExceptionDates>
 {
     static ExceptionDates Empty => new([]);
     
-    private readonly ImmutableList<DateTime> _values;
-    
-    public ExceptionDates(IEnumerable<DateTime> values)
+    private readonly ImmutableList<CalDateTime> _values;
+
+    // Required by EF Core to materialize this complex type via field access.
+    private ExceptionDates()
+    {
+        _values = [];
+    }
+
+    public ExceptionDates(IEnumerable<CalDateTime> values)
     {
         _values = [.. values];
     }
     
-    public ExceptionDates Add(DateTime value)
+    public ExceptionDates Add(CalDateTime value)
         => new(_values.Add(value));
     
     
-    public ExceptionDates AddRange(IEnumerable<DateTime> values)
+    public ExceptionDates AddRange(IEnumerable<CalDateTime> values)
         => new(_values.AddRange(values));
     
-    public IEnumerator<DateTime> GetEnumerator()
+    public IEnumerator<CalDateTime> GetEnumerator()
     {
         return _values.GetEnumerator();
     }
@@ -45,10 +52,10 @@ public sealed class ExceptionDates : IEnumerable<DateTime>, IParsable<ExceptionD
         
         var segments = s.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         
-        var values = new List<DateTime>();
+        var values = new List<CalDateTime>();
         foreach (var segment in segments)
         {
-            if (!DateTime.TryParse(segment, provider, out var dateTime))
+            if (!CalDateTime.TryParse(segment, provider, out var dateTime))
             {
                 result = Empty;
                 return false;

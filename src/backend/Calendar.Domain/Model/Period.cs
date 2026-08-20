@@ -5,21 +5,21 @@ namespace Calendar.Domain.Model;
 
 public readonly record struct Period : IParsable<Period>
 {
-    public Period(DateTime start, DateTime end)
+    public Period(CalDateTime start, CalDateTime end)
     {
         Start = start;
         End = end;
     }
 
-    public Period(DateTime start, Duration duration)
+    public Period(CalDateTime start, Duration duration)
     {
         Start = start;
         Duration = duration;
     }
     
-    public DateTime Start { get; } 
+    public CalDateTime Start { get; } 
        
-    public DateTime? End { get; }
+    public CalDateTime? End { get; }
     
     public Duration? Duration { get; }
 
@@ -42,7 +42,7 @@ public readonly record struct Period : IParsable<Period>
             return false;
         }
 
-        if (!DateTime.TryParse(segments[0], provider, out var start))
+        if (!CalDateTime.TryParse(segments[0], provider, out var start))
         {
             result = default;
             return false;
@@ -54,7 +54,7 @@ public readonly record struct Period : IParsable<Period>
             return true;
         }
         
-        if (!DateTime.TryParse(segments[1], provider, out var end))
+        if (!CalDateTime.TryParse(segments[1], provider, out var end))
         {
             result = default;
             return false;

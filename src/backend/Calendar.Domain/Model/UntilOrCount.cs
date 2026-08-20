@@ -9,7 +9,7 @@ public readonly record struct UntilOrCount : IParsable<UntilOrCount>
 {
     public static UntilOrCount Forever => new(null, null);
 
-    public static UntilOrCount On(DateTime value)
+    public static UntilOrCount On(CalDateTime value)
     {
         return new(value, null);
     }
@@ -17,13 +17,13 @@ public readonly record struct UntilOrCount : IParsable<UntilOrCount>
     public static UntilOrCount After(Count value)
         => new(null, value);
     
-    private UntilOrCount(DateTime? until, Count? count)
+    private UntilOrCount(CalDateTime? until, Count? count)
     {
         Until = until;
         Count = count;
     }
 
-    public DateTime? Until { get; }
+    public CalDateTime? Until { get; }
     public Count? Count { get; }
     
     public static UntilOrCount Parse(string s, IFormatProvider? provider)
@@ -31,7 +31,7 @@ public readonly record struct UntilOrCount : IParsable<UntilOrCount>
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out UntilOrCount result)
     {
-        DateTime.TryParse(s, provider, out var until);
+        CalDateTime.TryParse(s, provider, out var until);
         if (until != default)
         {
             result = new(until, null);
@@ -66,7 +66,7 @@ public sealed class UntilOrCountJsonConverter : System.Text.Json.Serialization.J
             throw new JsonException("Either 'until' or 'count' must be provided");
         }
         
-        if (hasUntil && DateTime.TryParse(untilProperty.GetString(), null, out var until))
+        if (hasUntil && CalDateTime.TryParse(untilProperty.GetString(), null, out var until))
         {
             return UntilOrCount.On(until);
         }

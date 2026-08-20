@@ -55,6 +55,7 @@ internal static class CalendarApi
 
             db.Calendars.Add(calendar);
             await db.SaveChangesAsync(cancellationToken);
+            
             return TypedResults.Created($"/calendars/{calendar.Id}", new Contracts.Calendar
             {
                 Id = calendar.Id,
@@ -87,19 +88,19 @@ internal static class CalendarApi
         
         group.MapDelete("/{id:guid}", async Task<Results<NoContent, NotFound>> (CalendarId id, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) => 
         {
-            var existing = await db.Calendars.FindAsync([id], cancellationToken);
+            var calendar = await db.Calendars.FindAsync([id], cancellationToken);
 
-            if (existing is null)
+            if (calendar is null)
             {
                 return TypedResults.NotFound();
             }
 
-            if (existing.UserId != userId)
+            if (calendar.UserId != userId)
             {
                 return TypedResults.NotFound();
             }
 
-            db.Calendars.Remove(existing);
+            db.Calendars.Remove(calendar);
             await db.SaveChangesAsync(cancellationToken);
 
             return TypedResults.NoContent(); 

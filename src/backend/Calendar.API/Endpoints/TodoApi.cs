@@ -18,7 +18,7 @@ public static class TodoApi
             .WithTags("Todos")
             .RequireAuthorization();
 
-        calendarGroup.MapGet("/", async Task<Ok<IEnumerable<Contracts.Todo>>> (Domain.Model.CalendarId calendarId, CalendarDbContext db, UserId userId, Domain.Model.DateTime from, Domain.Model.DateTime to, CancellationToken cancellationToken) =>
+        calendarGroup.MapGet("/", async Task<Ok<IEnumerable<Contracts.Todo>>> (Domain.Model.CalendarId calendarId, CalendarDbContext db, UserId userId, Domain.Model.CalDateTime from, Domain.Model.CalDateTime to, CancellationToken cancellationToken) =>
         {
             var todos = await db.Todos
                 .Where(t => t.CalendarId == calendarId && t.UserId == userId)
@@ -28,7 +28,7 @@ public static class TodoApi
                          (
                              (t.Due != null && t.Due >= from)
                              || (t.Due == null && t.Duration == null && t.Start >= from)
-                             || (t.Due == null && t.Duration != null && (t.Start + t.Duration >= from))
+                             || (t.Due == null && t.Duration != null && (t.Start + t.Duration.Value >= from))
                          ))
                         ||
                         (t.RecurrenceRule != null && 
@@ -43,14 +43,35 @@ public static class TodoApi
             return TypedResults.Ok(occurrences);
         });
         
-        calendarGroup.MapPost("/", async Task<Results<Created<Contracts.Todo>, NotFound>> (Domain.Model.CalendarId calendarId, Todo todoData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
+        calendarGroup.MapPost("/", async Task<Results<Created<Contracts.Todo>, NotFound>> (Domain.Model.CalendarId calendarId, Contracts.Todo todoData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
         {
             if (await db.Calendars.FindAsync([calendarId], cancellationToken) is not { } calendar || calendar.UserId != userId)
             {
                 return TypedResults.NotFound();
             }
 
-            Todo todo = calendar.AddTodo(todoData);
+            var todo = new Domain.Model.Todo(
+                userId,
+                calendarId,
+                todoData.Id,
+                todoData.Summary,
+                todoData.Description,
+                todoData.Start,
+                todoData.Due,
+                todoData.Duration,
+                todoData.Priority,
+                todoData.Alarm,
+                todoData.RecurrenceRule,
+                todoData.RecurrencePeriods,
+                todoData.RecurrenceDates,
+                todoData.ExceptionDates,
+                todoData.Location,
+                todoData.GeographicPosition,
+                todoData.Classification,
+                SystemClock.Instance.GetCurrentInstant()
+            );
+
+            _ = calendar.AddTodo(todo);
             
             await db.SaveChangesAsync(cancellationToken);
 
@@ -71,14 +92,22 @@ public static class TodoApi
             return TypedResults.NoContent();
         });
         
-        group.MapPut("{id:guid}", async Task<Results<NoContent, BadRequest<string>, NotFound>> (TodoId id, Todo todoData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
+        group.MapPut("{id:guid}", async Task<Results<NoContent, BadRequest<string>, NotFound>> (TodoId id, Contracts.Todo todoData, CalendarDbContext db, UserId userId, CancellationToken cancellationToken) =>
         {
             if (await db.Todos.FindAsync([id], cancellationToken) is not { } todo || todo.UserId != userId)
             {
                 return TypedResults.NotFound();
             }
 
-            todo.Edit(todoData);
+            todo.Edit(
+                summary: todoData.Summary,
+                description: todoData.Description,
+                location: todoData.Location,
+                geographicPosition: todoData.GeographicPosition,
+                alarm: todoData.Alarm,
+                recurrenceRule: todoData.RecurrenceRule,
+                priority: todoData.Priority
+            );
             
             await db.SaveChangesAsync(cancellationToken);
 
@@ -99,29 +128,59 @@ public static class TodoApi
         });
 
         return group;
+    }
 
-        static Contracts.Todo ToContract(Domain.Model.Todo todo)
+    extension(Domain.Model.Todo todo)
+    {
+        public Contracts.Todo ToContract()
         {
             return new Contracts.Todo
             {
-                CalendarId = todo.CalendarId,
                 Id = todo.Id,
+                Summary = todo.Summary,
+                Description = todo.Description,
                 Start = todo.Start,
                 Due = todo.Due,
                 Duration = todo.Duration,
-                Summary = todo.Summary,
-                Description = todo.Description,
-                Status = todo.Status,
-                Location = todo.Location,
-                GeographicPosition = todo.GeographicPosition,
-                RecurrenceRule = todo.RecurrenceRule,
                 Priority = todo.Priority,
                 Alarm = todo.Alarm,
+                RecurrenceRule = todo.RecurrenceRule,
+                RecurrencePeriods = todo.RecurrencePeriods,
+                RecurrenceDates = todo.RecurrenceDates,
+                ExceptionDates = todo.ExceptionDates,
+                Location = todo.Location,
+                GeographicPosition = todo.GeographicPosition,
                 Classification = todo.Classification,
-                Completed = todo.Completed,
-                Created = todo.Created,
-                LastModified = todo.LastModified
+                Status = todo.Status,
+                Completed = todo.Completed
             };
+        }
+    }
+
+    extension(Contracts.Todo todo)
+    {
+        public Domain.Model.Todo ToDomain(UserId userId, CalendarId calendarId, IClock clock)
+        {
+            return new Domain.Model.Todo(
+                userId,
+                calendarId,
+                todo.Id,
+                todo.Summary,
+                todo.Description,
+                todo.Start,
+                todo.Due,
+                todo.Duration,
+                todo.Priority,
+                todo.Alarm,
+                todo.RecurrenceRule,
+                todo.RecurrencePeriods,
+                todo.RecurrenceDates,
+                todo.ExceptionDates,
+                todo.Location,
+                todo.GeographicPosition,
+                todo.Classification,
+                clock.GetCurrentInstant()
+            );
         }
     }
 }

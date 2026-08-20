@@ -10,9 +10,9 @@ public sealed record BySecond : IParsable<BySecond>
 {
     public IEnumerable<Second> Value { get; }
 
-    public BySecond(IEnumerable<Second> values)
+    public BySecond(IEnumerable<Second> value)
     {
-        Value = values.ToImmutableHashSet();
+        Value = value.ToImmutableHashSet();
     }
 
     public static BySecond Parse(string s, IFormatProvider? provider) 

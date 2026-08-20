@@ -15,7 +15,7 @@ public class RecurrenceRule
     public RecurrenceRule(
         Frequency frequency,
         Interval? interval = null, 
-        DateTime? until = null,
+        CalDateTime? until = null,
         Count? count = null,
         BySecond? bySecond = null,
         ByMinute? byMinute = null,
@@ -42,7 +42,7 @@ public class RecurrenceRule
             throw new InvalidOperationException("BYYEARDAY only allowed with YEARLY");
         }
         
-        if (byDay?.Values.Any(d => d.Ordinal is not null) == true &&
+        if (byDay?.Value.Any(d => d.Ordinal is not null) == true &&
             frequency != Frequency.Monthly &&
             frequency != Frequency.Yearly)
         {
@@ -51,7 +51,7 @@ public class RecurrenceRule
         
         if (frequency == Frequency.Yearly &&
             byWeek != null &&
-            byDay?.Values.Any(d => d.Ordinal is not null) == true)
+            byDay?.Value.Any(d => d.Ordinal is not null) == true)
         {
             throw new InvalidOperationException(
                 "Numeric BYDAY not allowed with YEARLY when BYWEEKNO is present");
@@ -87,7 +87,7 @@ public class RecurrenceRule
 
     public Interval Interval { get; } 
     
-    public DateTime? Until { get; }
+    public CalDateTime? Until { get; }
 
     public Count? Count { get; }
     

@@ -8,11 +8,11 @@ namespace Calendar.Domain.Model;
 [JsonConverter(typeof(ParsableJsonConverter<ByDay>))]
 public sealed record ByDay : IParsable<ByDay>
 {
-    public IEnumerable<OrdinalWeekDay> Values { get; }
+    public IEnumerable<OrdinalWeekDay> Value { get; }
 
-    public ByDay(IEnumerable<OrdinalWeekDay> values)
+    public ByDay(IEnumerable<OrdinalWeekDay> value)
     {
-        Values = values.ToImmutableHashSet();
+        Value = value.ToImmutableHashSet();
     }
 
     public static ByDay Parse(string s, IFormatProvider? provider)
@@ -30,7 +30,7 @@ public sealed record ByDay : IParsable<ByDay>
 
         try
         {
-            var values = segments.Select(x=>OrdinalWeekDay.Parse(x, provider));
+            var values = segments.Select(x => OrdinalWeekDay.Parse(x, provider));
             
             result = new ByDay(values);
             return true;

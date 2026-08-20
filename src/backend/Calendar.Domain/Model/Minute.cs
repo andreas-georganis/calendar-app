@@ -21,8 +21,6 @@ public readonly record struct Minute: IParsable<Minute>
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Minute result)
     {
-        
-
         if (!int.TryParse(s, out int value))
         {
             result = default;

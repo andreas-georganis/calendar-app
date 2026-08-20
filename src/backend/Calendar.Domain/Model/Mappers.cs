@@ -86,28 +86,28 @@ internal static class DayOfWeekMapper
 
 internal static class DateTimeMapper
 {
-    extension(DateTime dateTime)
+    extension(CalDateTime dateTime)
     {
-        public CalDateTime ToIcal()
+        public Ical.Net.DataTypes.CalDateTime ToIcal()
         {
             if (dateTime.Zone is not null)
             {
-                return new CalDateTime(dateTime.Date.Year, dateTime.Date.Month, dateTime.Date.Day, dateTime.Time?.Hour ?? 0, dateTime.Time?.Minute ?? 0, dateTime.Time?.Second ?? 0, dateTime.Zone.Id);
+                return new Ical.Net.DataTypes.CalDateTime(dateTime.Date.Year, dateTime.Date.Month, dateTime.Date.Day, dateTime.Time?.Hour ?? 0, dateTime.Time?.Minute ?? 0, dateTime.Time?.Second ?? 0, dateTime.Zone.Id);
             }
             else if (dateTime.Time is not null)
             {
-                return new CalDateTime(dateTime.Date.Year, dateTime.Date.Month, dateTime.Date.Day, dateTime.Time.Value.Hour, dateTime.Time.Value.Minute, dateTime.Time.Value.Second);
+                return new Ical.Net.DataTypes.CalDateTime(dateTime.Date.Year, dateTime.Date.Month, dateTime.Date.Day, dateTime.Time.Value.Hour, dateTime.Time.Value.Minute, dateTime.Time.Value.Second);
             }
             else
             {
-                return new CalDateTime(dateTime.Date.Year, dateTime.Date.Month, dateTime.Date.Day);
+                return new Ical.Net.DataTypes.CalDateTime(dateTime.Date.Year, dateTime.Date.Month, dateTime.Date.Day);
             }
         }
     }
 
-    extension(CalDateTime date)
+    extension(Ical.Net.DataTypes.CalDateTime date)
     {
-        public DateTime ToDomain()
+        public CalDateTime ToDomain()
         {
             var localDate = new LocalDate(date.Year, date.Month, date.Day);
             if (date.HasTime)
@@ -116,16 +116,16 @@ internal static class DateTimeMapper
                 if (!string.IsNullOrEmpty(date.TzId))
                 {
                     var zone = DateTimeZoneProviders.Tzdb[date.TzId];
-                    return new DateTime(localDate, localTime, zone);
+                    return new CalDateTime(localDate, localTime, zone);
                 }
                 else
                 {
-                    return new DateTime(localDate, localTime);
+                    return new CalDateTime(localDate, localTime);
                 }
             }
             else
             {
-                return new DateTime(localDate);
+                return new CalDateTime(localDate);
             }
         }
     }
@@ -165,7 +165,7 @@ internal static class RecurrenceRuleMapper
                 Interval = rule.Interval.Value,
                 Count = rule.Count?.Value,
                 Until = rule.Until?.ToIcal(),
-                ByDay = rule.ByDay?.Values.Select(d => d.ToIcal()).ToList() ?? [],
+                ByDay = rule.ByDay?.Value.Select(d => d.ToIcal()).ToList() ?? [],
                 ByMonthDay = rule.ByMonthDay?.Value.Select(d => d.Value).ToList()?? [],
                 ByMonth = rule.ByMonth?.Value.Select(d => d.Value).ToList()?? [],
                 ByYearDay = rule.ByYearDay?.Value.Select(d => d.Value).ToList()?? [],

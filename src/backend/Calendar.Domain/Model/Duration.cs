@@ -12,19 +12,24 @@ namespace Calendar.Domain.Model;
 [JsonConverter(typeof(ParsableJsonConverter<Duration>))]
 public readonly partial record struct Duration : IParsable<Duration>
 {
-    [GeneratedRegex(@"^(?<sign>[+-])?P(?:(?<weeks>[0-9]+)W|(?:(?<days>[0-9]+)D(?:T(?:(?<hours>[0-9]+)H(?:(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?)?|(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?|(?<seconds>[0-9]+)S))?)|T(?:(?<hours>[0-9]+)H(?:(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?)?|(?<minutes>[0-9]+)M(?:(?<seconds>[0-9]+)S)?|(?<seconds>[0-9]+)S))$",
-        RegexOptions.Compiled)]
-    private static partial Regex Rfc5545DurationRegex { get; }
+    [GeneratedRegex(@"^(?<sign>[+-])?P(?=[0-9]+(?:W|D)|T[0-9]+[HMS])(?:(?<weeks>[0-9]+)W)?(?:(?<days>[0-9]+)D)?(?:T(?=[0-9]+[HMS])(?:(?<hours>[0-9]+)H)?(?:(?<minutes>[0-9]+)M)?(?:(?<seconds>[0-9]+)S)?)?$", RegexOptions.Compiled)]
+    private static partial Regex DurationRegex { get; }
 
     public static Duration Zero => Duration.Parse("P0D", null);
 
-    public static bool IsValid(string value) 
-        => Rfc5545DurationRegex.IsMatch(value);
+    public static Duration OneDay => Duration.Parse("P1D", null);
+
+    public static bool IsValid(string value)
+        => DurationRegex.IsMatch(value);
+    
+    private readonly NodaTime.Duration _duration;
 
     public Duration(NodaTime.Period period)
-        : this(period.Weeks, period.Days, (int)period.Hours, (int)period.Minutes, (int)period.Seconds)
-    {}
-    
+        : this(period.ToDuration())
+    {
+       
+    }
+
     public Duration(int? weeks = null, int? days = null, int? hours = null, int? minutes = null, int? seconds = null)
     {
         if (!SameSign(weeks, days, hours, minutes, seconds))
@@ -37,6 +42,22 @@ public readonly partial record struct Duration : IParsable<Duration>
         Hours = hours;
         Minutes = minutes;
         Seconds = seconds;
+
+        var b = new PeriodBuilder
+        {
+            Weeks = Weeks ?? 0,
+            Days = Days ?? 0,
+            Hours = Hours ?? 0,
+            Minutes = Minutes ?? 0,
+            Seconds = Seconds ?? 0,
+        };
+
+        _duration = b.Build().ToDuration();
+    }
+
+    private Duration(NodaTime.Duration value)
+    {
+        _duration = value;
     }
 
     public int? Weeks { get; private init; }
@@ -44,32 +65,8 @@ public readonly partial record struct Duration : IParsable<Duration>
     public int? Hours { get; private init; }
     public int? Minutes { get; private init; }
     public int? Seconds { get; private init; }
-    
-    public NodaTime.Period GetDate()
-    {
-        var b = new PeriodBuilder
-        {
-            Weeks = Weeks ?? 0,
-            Days = Days ?? 0,
-            Hours = Hours ?? 0,
-            Minutes = Minutes ?? 0,
-            Seconds = Seconds ?? 0
-        };
 
-        return b.Build();
-    }
-    
-    public NodaTime.Duration GetTime()
-    {
-        var b = new NodaTime.PeriodBuilder
-        {
-            Hours = Hours ?? 0,
-            Minutes = Minutes ?? 0,
-            Seconds = Seconds ?? 0,
-        };
-
-        return b.Build().ToDuration();
-    }
+    public NodaTime.Duration Value => _duration;
     
     public static Duration Parse(string s, IFormatProvider? provider)
     {
@@ -88,18 +85,7 @@ public readonly partial record struct Duration : IParsable<Duration>
 
         var value = s.Trim();
 
-        if (TryParseRfc5545(value, out result))
-        {
-            return true;
-        }
-
-        result = default;
-        return false;
-    }
-
-    private static bool TryParseRfc5545(string value, out Duration result)
-    {
-        var match = Rfc5545DurationRegex.Match(value);
+        var match = DurationRegex.Match(value);
 
         if (!match.Success)
         {
@@ -109,28 +95,29 @@ public readonly partial record struct Duration : IParsable<Duration>
 
         var sign = match.Groups["sign"].Value == "-" ? -1 : 1;
 
-        if (!TryParseComponent(match, "weeks", sign, out var weeks)
-            || !TryParseComponent(match, "days", sign, out var days)
-            || !TryParseComponent(match, "hours", sign, out var hours)
-            || !TryParseComponent(match, "minutes", sign, out var minutes)
-            || !TryParseComponent(match, "seconds", sign, out var seconds))
+        if (!TryParseComponent(match, "weeks", sign, provider, out var weeks)
+            || !TryParseComponent(match, "days", sign, provider, out var days)
+            || !TryParseComponent(match, "hours", sign, provider, out var hours)
+            || !TryParseComponent(match, "minutes", sign, provider, out var minutes)
+            || !TryParseComponent(match, "seconds", sign, provider, out var seconds))
         {
             result = default;
             return false;
         }
 
-        result = new Duration
+        try
         {
-            Weeks = weeks,
-            Days = days,
-            Hours = hours,
-            Minutes = minutes,
-            Seconds = seconds
-        };
-        return true;
+            result = new Duration(weeks, days, hours, minutes, seconds);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            result = default;
+            return false;
+        }
     }
 
-    private static bool TryParseComponent(Match match, string name, int sign, out int? result)
+    private static bool TryParseComponent(Match match, string name, int sign, IFormatProvider? provider, out int? result)
     {
         var group = match.Groups[name];
 
@@ -141,7 +128,7 @@ public readonly partial record struct Duration : IParsable<Duration>
         }
 
         // -P2147483648D is valid
-        if (!long.TryParse(group.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var value))
+        if (!long.TryParse(group.Value, NumberStyles.None, provider, out var value))
         {
             result = null;
             return false;

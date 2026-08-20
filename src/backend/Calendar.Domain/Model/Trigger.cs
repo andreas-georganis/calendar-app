@@ -1,14 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using NodaTime;
+using NodaTime.Text;
 
 namespace Calendar.Domain.Model;
 
-
-
 file interface ITrigger;
 
-public readonly partial record struct Trigger : ITrigger, IValidatableObject//, IParsable<Trigger>
+[JsonConverter(typeof(TriggerJsonConverter))]
+public  partial record class Trigger : ITrigger, IValidatableObject//, IParsable<Trigger>
 {
     // private const RegexOptions Options = RegexOptions.Compiled | RegexOptions.IgnoreCase;
     
@@ -16,20 +18,18 @@ public readonly partial record struct Trigger : ITrigger, IValidatableObject//, 
     // private static partial Regex TriggerRegex { get; }
     
     public static Trigger RelativeTrigger(Duration duration, TriggerRelation relation = TriggerRelation.Start) 
-        => new(new RelativeTrigger(duration, relation), null);
+        => new Trigger
+        {
+            Duration = duration,
+            Relation = relation
+        };
     
     public static Trigger AbsoluteTrigger(Instant utc)
-        => new(null, new AbsoluteTrigger(utc));
+        => new Trigger
+        {
+            Utc = utc
+        };
 
-    private Trigger(RelativeTrigger? relative, AbsoluteTrigger? absolute)
-    {
-        Relative = relative;
-        Absolute = absolute;
-    }
-    
-    public RelativeTrigger? Relative { get; }
-
-    public AbsoluteTrigger? Absolute { get; }
 
     /// <summary>
     /// For an absolute trigger, the UTC time at which the alarm will trigger. For a relative trigger, this field is null.
@@ -95,15 +95,78 @@ public readonly partial record struct Trigger : ITrigger, IValidatableObject//, 
     // }
 }
 
-public readonly record struct RelativeTrigger(Duration Duration, TriggerRelation Relation) : ITrigger;
-    
-public readonly record struct AbsoluteTrigger(Instant Utc): ITrigger;
+internal sealed class TriggerJsonConverter : JsonConverter<Trigger>
+{
+    public override Trigger Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("Expected an object for Trigger.");
+        }
 
-// [JsonPolymorphic]
-// [JsonDerivedType(typeof(RelativeTrigger))]
-// [JsonDerivedType(typeof(AbsoluteTrigger))]
-// public abstract class Trigger;
-//
-// public class RelativeTrigger(Duration Duration, TriggerRelation Relation) : Trigger;
-//     
-// public class AbsoluteTrigger(Instant Utc): Trigger;
+        Instant? utc = null;
+        Duration? duration = null;
+        TriggerRelation? relation = null;
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            var propertyName = reader.GetString();
+            reader.Read();
+
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                continue;
+            }
+
+            switch (propertyName)
+            {
+                case nameof(Trigger.Utc):
+                    utc = InstantPattern.ExtendedIso.Parse(reader.GetString()!).Value;
+                    break;
+                case nameof(Trigger.Duration):
+                    duration = Duration.Parse(reader.GetString()!, null);
+                    break;
+                case nameof(Trigger.Relation):
+                    relation = Enum.Parse<TriggerRelation>(reader.GetString()!, true);
+                    break;
+                default:
+                    reader.Skip();
+                    break;
+            }
+        }
+
+        if (utc is { } utcValue)
+        {
+            return Trigger.AbsoluteTrigger(utcValue);
+        }
+
+        if (duration is { } durationValue)
+        {
+            return Trigger.RelativeTrigger(durationValue, relation ?? TriggerRelation.Start);
+        }
+
+        return default;
+    }
+
+    public override void Write(Utf8JsonWriter writer, Trigger value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+
+        if (value.Utc is { } utc)
+        {
+            writer.WriteString(nameof(Trigger.Utc), InstantPattern.ExtendedIso.Format(utc));
+        }
+
+        if (value.Duration is { } duration)
+        {
+            writer.WriteString(nameof(Trigger.Duration), duration.ToString());
+        }
+
+        if (value.Relation is { } relation)
+        {
+            writer.WriteString(nameof(Trigger.Relation), relation.ToString());
+        }
+
+        writer.WriteEndObject();
+    }
+}

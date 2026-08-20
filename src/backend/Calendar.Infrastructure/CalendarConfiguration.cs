@@ -12,6 +12,9 @@ public class CalendarConfiguration : IEntityTypeConfiguration<Domain.Model.Calen
         builder.HasKey(c => c.Id);
         
         builder.Property(c => c.Id)
+            .HasConversion(
+                id => id.Value,
+                idValue => new CalendarId(idValue))
             .HasDefaultValueSql("NEWSEQUENTIALID()")
             .ValueGeneratedOnAdd();
 
@@ -21,6 +24,9 @@ public class CalendarConfiguration : IEntityTypeConfiguration<Domain.Model.Calen
                 userIdValue => new UserId(userIdValue));
         
         builder.Property(c => c.Name)
+            .HasConversion(
+                name => name.Value,
+                text => new Name(text))
             .IsRequired()
             .HasMaxLength(100);
 

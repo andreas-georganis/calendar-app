@@ -18,6 +18,19 @@ public readonly record struct Repeat : IParsable<Repeat>
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Repeat result)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(s))
+        {
+            result = default;
+            return false;
+        }
+
+        if (int.TryParse(s, out var value) && value >= 0)
+        {
+            result = new Repeat(value);
+            return true;
+        }
+        
+        result = default;
+        return false;
     }
 }

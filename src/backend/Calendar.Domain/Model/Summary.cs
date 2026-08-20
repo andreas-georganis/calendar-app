@@ -6,19 +6,19 @@ namespace Calendar.Domain.Model;
 [JsonConverter(typeof(ParsableJsonConverter<Summary>))]
 public sealed class Summary : IParsable<Summary>
 {
-    public Summary(string? text)
+    public Summary(string? value)
     {
         const int MaxLength = 30;
 
-        Text = text switch
+        Value = value switch
         {
             string {Length: > MaxLength} _ => throw new ArgumentOutOfRangeException($"Summary should be at most {MaxLength} characters long."),
-            _ when string.IsNullOrWhiteSpace(text) => "(No title)",
-            _ => text
+            _ when string.IsNullOrWhiteSpace(value) => "(No title)",
+            _ => value
         };
     }
 
-    public string Text { get; }
+    public string Value { get; }
 
     public static Summary Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var result)? result: throw new FormatException(); 

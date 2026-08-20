@@ -21,6 +21,11 @@ public readonly partial record struct OrdinalWeekDay : IParsable<OrdinalWeekDay>
     
     public YearWeek? Ordinal { get; }
 
+    public override string ToString()
+    {
+        return $"{Ordinal?.ToString() ?? ""}{Value.ToString()[..2].ToUpper()}";
+    }
+
 
     public static OrdinalWeekDay Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var result) ? result : throw new FormatException();
