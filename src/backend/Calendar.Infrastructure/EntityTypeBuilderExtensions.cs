@@ -198,13 +198,13 @@ public static class EntityTypeBuilderExtensions
 
                 alarm.Property(a => a.Description)
                     .HasConversion(
-                        description => description.Value,
+                        description => description!.Value,
                         value => new Description(value))
                     .HasMaxLength(150);
 
                 alarm.Property(a => a.Summary)
                     .HasConversion(
-                        summary => summary.Value,
+                        summary => summary!.Value,
                         value => new Summary(value))
                     .HasMaxLength(30);
 
@@ -248,20 +248,20 @@ public static class EntityTypeBuilderExtensions
         }
 
         public EntityTypeBuilder<T> AttendeesProperty(
-            System.Linq.Expressions.Expression<Func<T, IEnumerable<Domain.Model.Attendee>>> propertyExpression)
+            System.Linq.Expressions.Expression<Func<T, IEnumerable<Domain.Model.Attendee?>?>> propertyExpression)
         {
-            builder.ComplexCollection<Domain.Model.Attendee>(propertyExpression, attendees =>
+            builder.ComplexCollection(propertyExpression, attendees =>
             {
                 attendees.ToJson();
 
-                attendees.Property(a => a.Address)
+                attendees.Property(a => a.Value)
                     .HasConversion(
                         address => address.ToString(),
                         value => new Uri(value));
 
                 attendees.Property(a => a.CommonName)
                     .HasConversion(
-                        commonName => commonName.Value,
+                        commonName => commonName!.Value,
                         value => new CommonName(value));
 
                 attendees.Property(a => a.CuType)
@@ -269,7 +269,7 @@ public static class EntityTypeBuilderExtensions
 
                 attendees.Property(a => a.SentBy)
                     .HasConversion(
-                        sentBy => sentBy.ToString(),
+                        sentBy => sentBy!.ToString(),
                         value => new Uri(value));
 
                 attendees.Property(a => a.Rsvp);

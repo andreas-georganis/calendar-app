@@ -18,7 +18,7 @@ public sealed record BySetPos: IParsable<BySetPos>
     public static BySetPos Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var pos) ? pos : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out BySetPos result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out BySetPos? result)
     {
         var segments = s?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

@@ -18,7 +18,7 @@ public sealed record BySecond : IParsable<BySecond>
     public static BySecond Parse(string s, IFormatProvider? provider) 
         => TryParse(s, provider, out var result) ? result : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out BySecond result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out BySecond? result)
     {
         var segments = s?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

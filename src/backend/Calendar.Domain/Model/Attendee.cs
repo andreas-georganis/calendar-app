@@ -2,25 +2,20 @@
 
 public sealed class Attendee : IEquatable<Attendee>
 {
-    public required Uri Address { 
+    public required CalAddress Value {
         get; 
-        init
-        {
-            var mailto = ToMailto(value);
-
-            field = mailto?? throw new ArgumentException("Address must be a valid email address or a mailto URI.", nameof(value));
-        }
+        init;
     }
     
     public CommonName? CommonName { get; init; }
 
     public CalendarUserType? CuType { get; init; }
 
-    public IReadOnlyCollection<Uri>? Members { get; init; } = [];
+    public Membership? Members { get; init; } = [];
     
-    public IReadOnlyCollection<Uri>? DelegatedTo { get; init; } = [];
+    public Delegators? DelegatedTo { get; init; } = [];
 
-    public IReadOnlyCollection<Uri>? DelegatedFrom { get; init; } = [];
+    public Delegatees? DelegatedFrom { get; init; } = [];
     
     public bool? Rsvp { get; init; }
     
@@ -28,32 +23,15 @@ public sealed class Attendee : IEquatable<Attendee>
     
     public ParticipationStatus? ParticipationStatus { get; init; }
     
-    public Uri? SentBy { 
+    public CalAddress? SentBy { 
         get; 
         init
         {
-            var mailto = ToMailto(value);
+            if (value?.IsMailto is false)
+                throw new ArgumentException("SentBy must be a valid email address or a mailto URI.", nameof(value));
 
-            field = mailto?? throw new ArgumentException("SentBy must be a valid email address or a mailto URI.", nameof(value));
+            field = value;
         }
-    }
-    
-    private static Uri? ToMailto(Uri? uri)
-    {
-        if (uri is null)
-            return null;
-
-        if (uri.Scheme.Equals("mailto", StringComparison.OrdinalIgnoreCase))
-            return uri;
-
-        // only accept something that actually resembles an email
-        var candidate = uri.IsAbsoluteUri ? uri.AbsoluteUri : uri.OriginalString;
-
-        var atIndex = candidate.IndexOf('@');
-        if (atIndex < 1 || atIndex == candidate.Length - 1)
-            return null; // cannot safely convert
-
-        return new Uri($"mailto:{candidate}", UriKind.Absolute);
     }
 
     public bool Equals(Attendee? other)
@@ -61,7 +39,7 @@ public sealed class Attendee : IEquatable<Attendee>
         if (other is null)
             return false;
 
-        return Address.Equals(other.Address) &&
+        return Value.Equals(other.Value) &&
                CommonName == other.CommonName &&
                CuType == other.CuType &&
                Members?.SequenceEqual(other.Members ?? []) == true &&
@@ -78,7 +56,7 @@ public sealed class Attendee : IEquatable<Attendee>
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
-        hashCode.Add(Address);
+        hashCode.Add(Value);
         hashCode.Add(CommonName);
         hashCode.Add(CuType);
         if (Members is not null)

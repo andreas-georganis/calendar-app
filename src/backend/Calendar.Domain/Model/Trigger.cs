@@ -10,7 +10,7 @@ namespace Calendar.Domain.Model;
 file interface ITrigger;
 
 [JsonConverter(typeof(TriggerJsonConverter))]
-public  partial record class Trigger : ITrigger, IValidatableObject//, IParsable<Trigger>
+public partial record class Trigger : ITrigger, IValidatableObject//, IParsable<Trigger>
 {
     // private const RegexOptions Options = RegexOptions.Compiled | RegexOptions.IgnoreCase;
     
@@ -97,7 +97,7 @@ public  partial record class Trigger : ITrigger, IValidatableObject//, IParsable
 
 internal sealed class TriggerJsonConverter : JsonConverter<Trigger>
 {
-    public override Trigger Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Trigger? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {

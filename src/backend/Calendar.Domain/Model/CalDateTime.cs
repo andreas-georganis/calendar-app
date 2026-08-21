@@ -108,7 +108,7 @@ public partial record CalDateTime: IParsable<CalDateTime>, IComparable<CalDateTi
             ? result
             : throw new FormatException($"Cannot parse '{s}' as a DateTime.");
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out CalDateTime result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out CalDateTime? result)
     {
         if (string.IsNullOrWhiteSpace(s))
         {
@@ -164,9 +164,9 @@ public partial record CalDateTime: IParsable<CalDateTime>, IComparable<CalDateTi
         return formattable.ToString();
     }
 
-    public int CompareTo(CalDateTime other)
+    public int CompareTo(CalDateTime? other)
     {
-        return Value.CompareTo(other.Value);
+        return other is null ? 1 : Value.CompareTo(other.Value);
     }
 
     public static bool operator >(CalDateTime left, CalDateTime right)

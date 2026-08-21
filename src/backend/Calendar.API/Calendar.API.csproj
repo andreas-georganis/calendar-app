@@ -4,11 +4,13 @@
 <!--        <TargetFramework>net11.0</TargetFramework>-->
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Description>Calendar API</Description>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Asp.Versioning.Http" />
       <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+      <PackageReference Include="Asp.Versioning.OpenApi" />
       <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
@@ -16,14 +18,15 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.OpenApi" />
       <PackageReference Include="MiniValidation" />
       <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
       <PackageReference Include="Scalar.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\aspire\Calendar.ServiceDefaults\Calendar.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\Calendar.Infrastructure\Calendar.Infrastructure.csproj" />
+      <ProjectReference Include="../../aspire/Calendar.ServiceDefaults/Calendar.ServiceDefaults.csproj" />
+      <ProjectReference Include="../Calendar.Infrastructure/Calendar.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

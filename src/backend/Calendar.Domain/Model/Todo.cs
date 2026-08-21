@@ -18,7 +18,7 @@ public sealed class Todo
         UserId userId, 
         CalendarId calendarId,
         TodoId id,
-        Summary summary, 
+        Summary? summary, 
         Description? description,
         CalDateTime? start,
         CalDateTime? due,

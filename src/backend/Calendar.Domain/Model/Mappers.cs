@@ -1,4 +1,5 @@
 using Ical.Net;
+using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 
 using NodaTime;
@@ -82,7 +83,6 @@ internal static class DayOfWeekMapper
         }
     }
 }
-
 
 internal static class DateTimeMapper
 {
@@ -203,6 +203,104 @@ internal static class RecurrenceRuleMapper
     }
 }
 
+internal static class DurationMapper
+{
+    extension(Duration duration)
+    {
+        public Ical.Net.DataTypes.Duration ToIcal()
+        {
+            return new Ical.Net.DataTypes.Duration(duration.Weeks, duration.Days, duration.Hours, duration.Minutes, duration.Seconds);
+        }
+    }
+
+    extension(Ical.Net.DataTypes.Duration duration)
+    {
+        public Duration ToDomain()
+        {
+            return new Duration(duration.Weeks, duration.Days, duration.Hours, duration.Minutes, duration.Seconds);
+        }
+    }
+}
+
+internal static class AttendeeMapper
+{
+    extension(Attendee attendee)
+    {
+        public Ical.Net.DataTypes.Attendee ToIcal()
+        {
+            var icalAttendee = new Ical.Net.DataTypes.Attendee
+            {
+                Value = attendee.Value,
+            };
+
+            return icalAttendee;
+        }
+    }
+
+    extension(Ical.Net.DataTypes.Attendee ical)
+    {
+        public Attendee ToDomain()
+        {
+            var attendee = new Attendee
+            {
+                Value = ical.Value,
+                
+            };
+
+            return attendee;
+        }
+    }
+}
+
+internal static class AlarmMapper
+{
+    extension(Alarm alarm)
+    {
+        public Ical.Net.CalendarComponents.Alarm ToIcal()
+        {
+            var icalAlarm = new Ical.Net.CalendarComponents.Alarm
+            {
+                
+            };
+
+            return icalAlarm;
+        }
+    }
+
+    extension(Ical.Net.CalendarComponents.Alarm ical)
+    {
+        public Alarm ToDomain()
+        {
+            Alarm alarm = default;
+
+            return alarm;
+        }
+    }
+}
+
+internal static class TimeZoneMapper
+{
+    extension(DateTimeZone zone)
+    {
+        public VTimeZone ToIcal()
+        {
+            var icalZone = new VTimeZone(zone.Id);
+
+            return icalZone;
+        }
+    }
+
+    extension(VTimeZone zone)
+    {
+        public DateTimeZone ToDomain()
+        {
+            var domainZone = DateTimeZoneProviders.Tzdb[zone.TzId!];
+
+            return domainZone;
+        }
+    }
+}
+
 internal static class CalendarMapper
 {
     extension(Domain.Model.Calendar calendar)
@@ -211,8 +309,14 @@ internal static class CalendarMapper
         {
             var icalCalendar = new Ical.Net.Calendar
             {
-                
+                Name = calendar.Name.Value,
             };
+
+            icalCalendar.AddTimeZone(calendar.TimeZone.ToIcal());
+
+            icalCalendar.AddProperty("X-USER-ID", calendar.UserId.Value.ToString());
+            icalCalendar.AddProperty("X-CALENDAR-ID", calendar.Id.Value.ToString());
+
 
             return icalCalendar;
         }
@@ -222,9 +326,16 @@ internal static class CalendarMapper
     {
         public Domain.Model.Calendar ToDomain()
         {
-            Domain.Model.Calendar calendar = default;
+            _ = Guid.TryParse(ical.Properties["X-USER-ID"]!.Value as string, out var userId);
+            _ = Guid.TryParse(ical.Properties["X-CALENDAR-ID"]!.Value as string, out var calendarId);
 
-            return calendar;
+            var zone = ical.TimeZones.FirstOrDefault()!.ToDomain();
+
+            return new Domain.Model.Calendar(
+                new UserId(userId),
+                new CalendarId(calendarId),
+                new CalendarName(ical.Name),
+                zone);
         }
     }
 }
@@ -253,6 +364,7 @@ internal static class TodoMapper
         {
             var icalTodo = new Ical.Net.CalendarComponents.Todo
             {
+                
                 
             };
 

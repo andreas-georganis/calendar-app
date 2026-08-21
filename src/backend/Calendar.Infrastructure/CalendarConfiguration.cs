@@ -26,7 +26,7 @@ public class CalendarConfiguration : IEntityTypeConfiguration<Domain.Model.Calen
         builder.Property(c => c.Name)
             .HasConversion(
                 name => name.Value,
-                text => new Name(text))
+                text => new CalendarName(text))
             .IsRequired()
             .HasMaxLength(100);
 

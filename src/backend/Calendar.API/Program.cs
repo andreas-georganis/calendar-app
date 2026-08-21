@@ -50,12 +50,25 @@ builder.AddSqlServerDbContext<CalendarDbContext>("CalendarDb",
             }));
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi(o =>
+builder.Services.AddApiVersioning(o => 
 {
-    o.AddDocumentTransformer<BearerOpenApiTransformer>();
-    o.AddOperationTransformer<BearerOpenApiTransformer>();
-    o.AddSchemaTransformer<NodaTimeTransformer>();
-    o.AddSchemaTransformer<ParsableTransformer>();
+    o.DefaultApiVersion = new ApiVersion(1, 0);
+    o.AssumeDefaultVersionWhenUnspecified = true;
+    o.ReportApiVersions = true;
+    o.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("X-Api-Version"));
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+}).AddOpenApi(o =>
+{
+    o.Document.AddDocumentTransformer<BearerOpenApiTransformer>();
+    o.Document.AddOperationTransformer<BearerOpenApiTransformer>();
+    o.Document.AddSchemaTransformer<NodaTimeTransformer>();
+    o.Document.AddSchemaTransformer<ParsableTransformer>();
 });
 
 builder.Services.AddSingleton<IClock>(NodaTime.SystemClock.Instance);
@@ -63,21 +76,6 @@ builder.Services.AddSingleton<IClock>(NodaTime.SystemClock.Instance);
 builder.Services.AddRateLimiting(builder.Configuration);
 
 builder.Services.AddHttpLogging(o => { });
-
-builder.Services.AddApiVersioning(o => 
-    {
-        o.DefaultApiVersion = new ApiVersion(1, 0);
-        o.AssumeDefaultVersionWhenUnspecified = true;
-        o.ReportApiVersions = true;
-        o.ApiVersionReader = ApiVersionReader.Combine(
-            new UrlSegmentApiVersionReader(),
-            new HeaderApiVersionReader("X-Api-Version"));
-    })
-    .AddApiExplorer(options =>
-    {
-        options.GroupNameFormat = "'v'V";
-        options.SubstituteApiVersionInUrl = true;
-    });
 
 builder.Services.AddOpenTelemetry().WithTracing(o => o.AddSource("Microsoft.AspNetCore"));
 
@@ -91,7 +89,8 @@ app.UseHttpLogging();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().WithDocumentPerVersion();
+    
     app.MapScalarApiReference(options =>
     {
         options.Title = "Calendar API";

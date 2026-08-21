@@ -53,20 +53,20 @@ public static class ComplexPropertyBuilderExtensions
         }
 
         public ComplexPropertyBuilder<T> AttendeesProperty(
-            System.Linq.Expressions.Expression<Func<T, IEnumerable<Domain.Model.Attendee>?>> propertyExpression)
+            System.Linq.Expressions.Expression<Func<T, IEnumerable<Domain.Model.Attendee?>?>> propertyExpression)
         {
-            builder.ComplexCollection<Domain.Model.Attendee>(propertyExpression, attendee =>
+            builder.ComplexCollection(propertyExpression, attendee =>
             {
                     attendee.ToJson();
 
-                    attendee.Property(a => a.Address)
+                    attendee.Property(a => a.Value)
                         .HasConversion(
                             address => address.ToString(),
                             value => new Uri(value));
 
                     attendee.Property(a => a.CommonName)
                     .HasConversion(
-                        commonName => commonName.Value,
+                        commonName => commonName!.Value,
                         value => new CommonName(value));
 
                     attendee.Property(a => a.CuType)
@@ -74,7 +74,7 @@ public static class ComplexPropertyBuilderExtensions
 
                     attendee.Property(a => a.SentBy)
                         .HasConversion(
-                            sentBy => sentBy.ToString(),
+                            sentBy => sentBy!.ToString(),
                             value => new Uri(value));
 
                     attendee.Property(a => a.Rsvp);

@@ -17,7 +17,7 @@ public sealed record ByMonthDay : IParsable<ByMonthDay>
     public static ByMonthDay Parse(string s, IFormatProvider? provider)
     => TryParse(s, provider, out var result) ? result : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ByMonthDay result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out ByMonthDay? result)
     {
         var segments = s?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

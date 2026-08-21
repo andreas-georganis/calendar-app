@@ -14,10 +14,10 @@
     <Project Path="src/backend/Calendar.Infrastructure/Calendar.Infrastructure.csproj" />
     <Project Path="src/backend/Calendar.Migrator/Calendar.Migrator.csproj" />
   </Folder>
-  <Folder Name="/src/frontend/" />
   <Folder Name="/src/frontend/Calendar.Web/">
     <Project Path="src/frontend/Calendar.Web/Calendar.Web.Client/Calendar.Web.Client.csproj" />
     <Project Path="src/frontend/Calendar.Web/Calendar.Web/Calendar.Web.csproj" />
   </Folder>
+  
   <Folder Name="/tests/" />
 </Solution>

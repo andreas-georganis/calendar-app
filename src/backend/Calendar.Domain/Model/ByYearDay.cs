@@ -17,7 +17,7 @@ public sealed record ByYearDay : IParsable<ByYearDay>
     public static ByYearDay Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var result) ? result : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ByYearDay result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out ByYearDay? result)
     {
         var segments = s?.Split(',', StringSplitOptions.RemoveEmptyEntries 
                                      | StringSplitOptions.TrimEntries);

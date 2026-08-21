@@ -12,13 +12,13 @@ public sealed class Event
     public Domain.Model.EventId Id { get; init; } = Domain.Model.EventId.New();
 
     [Required]
-    public Domain.Model.CalDateTime Start { get; init; }
+    public required Domain.Model.CalDateTime Start { get; init; }
 
     public Domain.Model.CalDateTime? End { get; init; }
 
     public Domain.Model.Duration? Duration { get; init; }
 
-    public Summary? Summary { get; init; }
+    public Summary? Summary { get; init; } = Summary.Default;
 
     public Description? Description { get; init; }
 

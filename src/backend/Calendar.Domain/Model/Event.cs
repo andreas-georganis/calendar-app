@@ -10,7 +10,12 @@ namespace Calendar.Domain.Model;
 public class Event
 {
     private readonly HashSet<Attendee>? _attendees;
-    protected Event() { }
+
+    private Event()
+    {
+        Start = default!;
+        End = default!;
+    }
 
     public Event(
         UserId userId, 
@@ -77,9 +82,9 @@ public class Event
     public CalendarId CalendarId { get; }
     public EventId Id { get; }
 
-    public Summary? Summary { get; protected set; }
+    public Summary? Summary { get; private set; }
 
-    public Description? Description { get; protected set; }
+    public Description? Description { get; private set; }
     public CalDateTime Start { get; }
     public GeographicPosition? GeographicPosition { get; private set; } 
 
@@ -91,7 +96,7 @@ public class Event
     public Alarm? Alarm { get; private set; }
     public Duration? Duration { get; }
 
-    public Location? Location { get; protected set; }
+    public Location? Location { get; private set; }
 
     public SequenceNumber SequenceNumber { get; private set; } = SequenceNumber.Zero;
     
@@ -103,7 +108,7 @@ public class Event
     
     public EventStatus Status { get; }
 
-    public Classification? Classification { get;  }
+    public Classification? Classification { get; }
 
     public TimeTransparency? Transparency { get; }
     

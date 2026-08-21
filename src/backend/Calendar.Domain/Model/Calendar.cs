@@ -8,7 +8,7 @@ public sealed class Calendar
     private readonly List<Todo> _todos = [];
     private readonly List<Event> _events = [];
     
-    public Calendar(UserId userId, CalendarId id, Name name, DateTimeZone timeZone)
+    public Calendar(UserId userId, CalendarId id, CalendarName name, DateTimeZone timeZone)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(timeZone);
@@ -23,11 +23,11 @@ public sealed class Calendar
     
     public CalendarId Id { get; init; }
     
-    public Name Name { get;  private set; }
+    public CalendarName Name { get;  private set; }
     
     public DateTimeZone TimeZone { get;  private set; }
     
-    public void Edit(Name name, DateTimeZone timeZone)
+    public void Edit(CalendarName name, DateTimeZone timeZone)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(timeZone);

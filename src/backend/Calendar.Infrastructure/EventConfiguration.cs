@@ -44,20 +44,20 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 
         builder.Property(x => x.Summary)
             .HasConversion(
-                summary => summary.Value,
+                summary => summary!.Value,
                 value => new Summary(value))
             .IsRequired()
             .HasMaxLength(30);
 
         builder.Property(x => x.Description)
             .HasConversion(
-                description => description.Value,
+                description => description!.Value,
                 value => new Description(value))
             .HasMaxLength(150);
 
         builder.Property(x => x.Location)
             .HasConversion(
-                location => location.Value,
+                location => location!.Value,
                 value => new Location(value))
             .HasMaxLength(50);
 

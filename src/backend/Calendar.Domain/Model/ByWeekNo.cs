@@ -25,7 +25,7 @@ public sealed record ByWeekNo: IParsable<ByWeekNo>
         return result;
     }
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ByWeekNo result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out ByWeekNo? result)
     {
         var segments = s?.Split(',', StringSplitOptions.RemoveEmptyEntries 
                                          | StringSplitOptions.TrimEntries);

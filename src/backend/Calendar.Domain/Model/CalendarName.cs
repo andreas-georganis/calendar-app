@@ -2,12 +2,12 @@
 using System.Text.Json.Serialization;
 namespace Calendar.Domain.Model;
 
-[JsonConverter(typeof(ParsableJsonConverter<Name>))]
-public sealed class Name : IParsable<Name>
+[JsonConverter(typeof(ParsableJsonConverter<CalendarName>))]
+public sealed class CalendarName : IParsable<CalendarName>
 {
     public string Value { get; init; }
 
-    public Name(string value)
+    public CalendarName(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value, nameof(value));
 
@@ -16,10 +16,10 @@ public sealed class Name : IParsable<Name>
 
     public override string ToString() => Value;
 
-    public static Name Parse(string s, IFormatProvider? provider)
+    public static CalendarName Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var result) ? result : throw new FormatException($"Invalid Name: '{s}'.");
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Name result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out CalendarName result)
     {
         if (string.IsNullOrWhiteSpace(s))
         {
@@ -27,7 +27,7 @@ public sealed class Name : IParsable<Name>
             return false;
         }
 
-        result = new Name(s);
+        result = new CalendarName(s);
         return true;
     }
 }

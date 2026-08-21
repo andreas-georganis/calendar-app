@@ -17,7 +17,7 @@ public sealed record ByHour : IParsable<ByHour>
     public static ByHour Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var byHour) ? byHour : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ByHour result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out ByHour? result)
     {
         var segments = s?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

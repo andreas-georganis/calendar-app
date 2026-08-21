@@ -9,7 +9,7 @@ public sealed class Calendar
     public CalendarId Id { get; init; } = CalendarId.New();
        
     [Required]
-    public required Name Name { get; init; }
+    public required CalendarName Name { get; init; }
     
     [Required]
     public required DateTimeZone TimeZone { get; init; }

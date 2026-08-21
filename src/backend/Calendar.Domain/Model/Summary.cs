@@ -6,6 +6,8 @@ namespace Calendar.Domain.Model;
 [JsonConverter(typeof(ParsableJsonConverter<Summary>))]
 public sealed class Summary : IParsable<Summary>
 {
+    public static Summary Default { get; } = new Summary(null);
+
     public Summary(string? value)
     {
         const int MaxLength = 30;

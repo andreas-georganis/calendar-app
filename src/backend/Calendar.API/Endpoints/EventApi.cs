@@ -132,7 +132,7 @@ public static class EventApi
                 userId: id,
                 calendarId: calendarId,
                 id: @event.Id,
-                summary: @event.Summary,
+                summary: @event.Summary!,
                 description: @event.Description,
                 start: @event.Start,
                 end: @event.End,

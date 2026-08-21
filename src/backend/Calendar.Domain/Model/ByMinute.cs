@@ -17,7 +17,7 @@ public sealed record ByMinute : IParsable<ByMinute>
     public static ByMinute Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var byMinute) ? byMinute : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ByMinute result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out ByMinute? result)
     {
         var segments = s?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

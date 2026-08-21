@@ -18,13 +18,13 @@ public sealed record ByDay : IParsable<ByDay>
     public static ByDay Parse(string s, IFormatProvider? provider)
         => TryParse(s, provider, out var result) ? result : throw new FormatException();
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ByDay result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out ByDay? result)
     {
         var segments = s?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         
         if (segments is null)
         {
-            result = default;
+            result = null;
             return false;
         }
 
